@@ -12403,51 +12403,1814 @@
       },
       "examples": [
         {
-          "a": 0,
-          "b": 2,
-          "fa": 0,
-          "fb": 4
+          "x0": 1,
+          "fx0": 0.5,
+          "fpx0": 2
         }
       ]
     },
     {
-      "id": "newton_method_step",
-      "category": "Numerical Computing",
-      "title": "Newton's Method (1 iteration)",
-      "description": "x1 = x0 - f(x0)/f'(x0)",
+      "id": "reynolds_number",
+      "category": "Fluid Dynamics",
+      "title": "Reynolds Number",
+      "description": "Ratio of inertial forces to viscous forces. Re = (rho * v * L) / mu",
       "inputs": [
         {
-          "label": "Initial Guess x0",
-          "key": "x0",
+          "label": "Density (rho)",
+          "key": "rho",
+          "type": "number",
+          "unit": "kg/m^3",
+          "required": true
+        },
+        {
+          "label": "Velocity (v)",
+          "key": "v",
+          "type": "number",
+          "unit": "m/s",
+          "required": true
+        },
+        {
+          "label": "Char. Length (L)",
+          "key": "L",
+          "type": "number",
+          "unit": "m",
+          "required": true
+        },
+        {
+          "label": "Viscosity (mu)",
+          "key": "mu",
+          "type": "number",
+          "unit": "Pa·s",
+          "required": true
+        }
+      ],
+      "expression": "(rho * v * L) / mu",
+      "output": {
+        "label": "Reynolds Number (Re)",
+        "unit": ""
+      },
+      "examples": [
+        {
+          "rho": 1000,
+          "v": 1,
+          "L": 0.1,
+          "mu": 0.001
+        }
+      ]
+    },
+    {
+      "id": "bernoulli_simple",
+      "category": "Fluid Dynamics",
+      "title": "Bernoulli's Equation",
+      "description": "Conservation of energy in a fluid. P + 0.5*rho*v^2 + rho*g*h = constant",
+      "inputs": [
+        {
+          "label": "Pressure (P)",
+          "key": "P",
+          "type": "number",
+          "unit": "Pa",
+          "required": true
+        },
+        {
+          "label": "Density (rho)",
+          "key": "rho",
+          "type": "number",
+          "unit": "kg/m^3",
+          "required": true
+        },
+        {
+          "label": "Velocity (v)",
+          "key": "v",
+          "type": "number",
+          "unit": "m/s",
+          "required": true
+        },
+        {
+          "label": "Gravity (g)",
+          "key": "g",
+          "type": "number",
+          "unit": "m/s^2",
+          "required": true
+        },
+        {
+          "label": "Height (h)",
+          "key": "h",
+          "type": "number",
+          "unit": "m",
+          "required": true
+        }
+      ],
+      "expression": "P + 0.5 * rho * v^2 + rho * g * h",
+      "output": {
+        "label": "Total Pressure",
+        "unit": "Pa"
+      },
+      "examples": [
+        {
+          "P": 101325,
+          "rho": 1.225,
+          "v": 10,
+          "g": 9.81,
+          "h": 5
+        }
+      ]
+    },
+    {
+      "id": "photon_energy",
+      "category": "Quantum Mechanics",
+      "title": "Energy of a Photon",
+      "description": "E = h * f",
+      "inputs": [
+        {
+          "label": "Frequency (f)",
+          "key": "f",
+          "type": "number",
+          "unit": "Hz",
+          "required": true
+        }
+      ],
+      "expression": "6.62607015e-34 * f",
+      "output": {
+        "label": "Energy (E)",
+        "unit": "J"
+      },
+      "examples": [
+        {
+          "f": 5e14
+        }
+      ]
+    },
+    {
+      "id": "de_broglie_wavelength",
+      "category": "Quantum Mechanics",
+      "title": "De Broglie Wavelength",
+      "description": "lambda = h / (m * v)",
+      "inputs": [
+        {
+          "label": "Mass (m)",
+          "key": "m",
+          "type": "number",
+          "unit": "kg",
+          "required": true
+        },
+        {
+          "label": "Velocity (v)",
+          "key": "v",
+          "type": "number",
+          "unit": "m/s",
+          "required": true
+        }
+      ],
+      "expression": "6.62607015e-34 / (m * v)",
+      "output": {
+        "label": "Wavelength (lambda)",
+        "unit": "m"
+      },
+      "examples": [
+        {
+          "m": 9.1e-31,
+          "v": 1e6
+        }
+      ]
+    },
+    {
+      "id": "schrodinger_well_energy",
+      "category": "Quantum Mechanics",
+      "title": "Inf. Well Energy Levels",
+      "description": "En = (n^2 * h^2) / (8 * m * L^2)",
+      "inputs": [
+        {
+          "label": "Level (n)",
+          "key": "n",
           "type": "number",
           "unit": "",
           "required": true
         },
         {
-          "label": "Value f(x0)",
-          "key": "fx0",
+          "label": "Mass (m)",
+          "key": "m",
+          "type": "number",
+          "unit": "kg",
+          "required": true
+        },
+        {
+          "label": "Width (L)",
+          "key": "L",
+          "type": "number",
+          "unit": "m",
+          "required": true
+        }
+      ],
+      "expression": "(n^2 * (6.62607015e-34)^2) / (8 * m * L^2)",
+      "output": {
+        "label": "Energy (En)",
+        "unit": "J"
+      },
+      "examples": [
+        {
+          "n": 1,
+          "m": 9.1e-31,
+          "L": 1e-10
+        }
+      ]
+    },
+    {
+      "id": "entropy_change_const_p",
+      "category": "Thermodynamics",
+      "title": "Entropy Change (const P)",
+      "description": "dS = m * Cp * ln(T2/T1)",
+      "inputs": [
+        {
+          "label": "Mass (m)",
+          "key": "m",
+          "type": "number",
+          "unit": "kg",
+          "required": true
+        },
+        {
+          "label": "Spec. Heat (Cp)",
+          "key": "Cp",
+          "type": "number",
+          "unit": "J/kg·K",
+          "required": true
+        },
+        {
+          "label": "T1",
+          "key": "T1",
+          "type": "number",
+          "unit": "K",
+          "required": true
+        },
+        {
+          "label": "T2",
+          "key": "T2",
+          "type": "number",
+          "unit": "K",
+          "required": true
+        }
+      ],
+      "expression": "m * Cp * log(T2 / T1)",
+      "output": {
+        "label": "Entropy Change (dS)",
+        "unit": "J/K"
+      },
+      "examples": [
+        {
+          "m": 1,
+          "Cp": 4184,
+          "T1": 293,
+          "T2": 373
+        }
+      ]
+    },
+    {
+      "id": "gibbs_free_energy",
+      "category": "Thermodynamics",
+      "title": "Gibbs Free Energy",
+      "description": "dG = dH - T * dS",
+      "inputs": [
+        {
+          "label": "Enthalpy (dH)",
+          "key": "dH",
+          "type": "number",
+          "unit": "J",
+          "required": true
+        },
+        {
+          "label": "Temp (T)",
+          "key": "T",
+          "type": "number",
+          "unit": "K",
+          "required": true
+        },
+        {
+          "label": "Entropy (dS)",
+          "key": "dS",
+          "type": "number",
+          "unit": "J/K",
+          "required": true
+        }
+      ],
+      "expression": "dH - T * dS",
+      "output": {
+        "label": "Free Energy (dG)",
+        "unit": "J"
+      },
+      "examples": [
+        {
+          "dH": -10000,
+          "T": 298,
+          "dS": 50
+        }
+      ]
+    },
+    {
+      "id": "brinell_hardness",
+      "category": "Material Science",
+      "title": "Brinell Hardness",
+      "description": "HB = (2*P) / (pi*D * (D - sqrt(D^2 - d^2)))",
+      "inputs": [
+        {
+          "label": "Load (P)",
+          "key": "P",
+          "type": "number",
+          "unit": "kgf",
+          "required": true
+        },
+        {
+          "label": "Indenter Dia (D)",
+          "key": "D",
+          "type": "number",
+          "unit": "mm",
+          "required": true
+        },
+        {
+          "label": "Indent Dia (d)",
+          "key": "d",
+          "type": "number",
+          "unit": "mm",
+          "required": true
+        }
+      ],
+      "expression": "(2 * P) / (pi * D * (D - sqrt(D^2 - d^2)))",
+      "output": {
+        "label": "Hardness (HB)",
+        "unit": ""
+      },
+      "examples": [
+        {
+          "P": 3000,
+          "D": 10,
+          "d": 4
+        }
+      ]
+    },
+    {
+      "id": "poisson_probability",
+      "category": "Statistics",
+      "title": "Poisson Probability",
+      "description": "P(k; lambda) = (lambda^k * e^-lambda) / k!",
+      "inputs": [
+        {
+          "label": "Mean (lambda)",
+          "key": "l",
           "type": "number",
           "unit": "",
           "required": true
         },
         {
-          "label": "Deriv. f'(x0)",
-          "key": "fpx0",
+          "label": "Events (k)",
+          "key": "k",
           "type": "number",
           "unit": "",
           "required": true
         }
       ],
-      "expression": "x0 - (fx0 / fpx0)",
+      "expression": "(l^k * e^(-l)) / factorial(k)",
       "output": {
-        "label": "Next x1",
+        "label": "Probability",
         "unit": ""
       },
       "examples": [
         {
-          "x0": 1,
-          "fx0": 0.5,
-          "fpx0": 2
+          "l": 2.5,
+          "k": 3
+        }
+      ]
+    },
+    {
+      "id": "standard_deviation_population",
+      "category": "Statistics",
+      "title": "Standard Deviation",
+      "description": "Simple version for two numbers: sqrt(((x1-avg)^2 + (x2-avg)^2)/2)",
+      "inputs": [
+        {
+          "label": "Val 1 (x1)",
+          "key": "x1",
+          "type": "number",
+          "unit": "",
+          "required": true
+        },
+        {
+          "label": "Val 2 (x2)",
+          "key": "x2",
+          "type": "number",
+          "unit": "",
+          "required": true
+        }
+      ],
+      "expression": "sqrt(((x1 - (x1+x2)/2)^2 + (x2 - (x1+x2)/2)^2) / 2)",
+      "output": {
+        "label": "Std Dev",
+        "unit": ""
+      },
+      "examples": [
+        {
+          "x1": 10,
+          "x2": 20
+        }
+      ]
+    },
+    {
+      "id": "weber_number",
+      "category": "Fluid Dynamics",
+      "title": "Weber Number",
+      "description": "Relative importance of inertia to surface tension. We = rho * v^2 * L / sigma",
+      "inputs": [
+        {
+          "label": "Density (rho)",
+          "key": "rho",
+          "type": "number",
+          "unit": "kg/m^3",
+          "required": true
+        },
+        {
+          "label": "Velocity (v)",
+          "key": "v",
+          "type": "number",
+          "unit": "m/s",
+          "required": true
+        },
+        {
+          "label": "Char. Length (L)",
+          "key": "L",
+          "type": "number",
+          "unit": "m",
+          "required": true
+        },
+        {
+          "label": "Surface Tension (sigma)",
+          "key": "s",
+          "type": "number",
+          "unit": "N/m",
+          "required": true
+        }
+      ],
+      "expression": "(rho * v^2 * L) / s",
+      "output": {
+        "label": "Weber Number (We)",
+        "unit": ""
+      },
+      "examples": [
+        {
+          "rho": 1000,
+          "v": 10,
+          "L": 0.05,
+          "s": 0.072
+        }
+      ]
+    },
+    {
+      "id": "poiseuilles_law",
+      "category": "Fluid Dynamics",
+      "title": "Poiseuille's Law",
+      "description": "Flow rate in a pipe. Q = (pi * r^4 * dP) / (8 * mu * L)",
+      "inputs": [
+        {
+          "label": "Radius (r)",
+          "key": "r",
+          "type": "number",
+          "unit": "m",
+          "required": true
+        },
+        {
+          "label": "Pressure Diff (dP)",
+          "key": "dP",
+          "type": "number",
+          "unit": "Pa",
+          "required": true
+        },
+        {
+          "label": "Viscosity (mu)",
+          "key": "mu",
+          "type": "number",
+          "unit": "Pa·s",
+          "required": true
+        },
+        {
+          "label": "Length (L)",
+          "key": "L",
+          "type": "number",
+          "unit": "m",
+          "required": true
+        }
+      ],
+      "expression": "(pi * r^4 * dP) / (8 * mu * L)",
+      "output": {
+        "label": "Flow Rate (Q)",
+        "unit": "m^3/s"
+      },
+      "examples": [
+        {
+          "r": 0.01,
+          "dP": 1000,
+          "mu": 0.001,
+          "L": 2
+        }
+      ]
+    },
+    {
+      "id": "mach_number",
+      "category": "Aerodynamics",
+      "title": "Mach Number",
+      "description": "M = v / a",
+      "inputs": [
+        {
+          "label": "Velocity (v)",
+          "key": "v",
+          "type": "number",
+          "unit": "m/s",
+          "required": true
+        },
+        {
+          "label": "Speed of Sound (a)",
+          "key": "a",
+          "type": "number",
+          "unit": "m/s",
+          "required": true
+        }
+      ],
+      "expression": "v / a",
+      "output": {
+        "label": "Mach (M)",
+        "unit": ""
+      },
+      "examples": [
+        {
+          "v": 340,
+          "a": 340
+        }
+      ]
+    },
+    {
+      "id": "froude_number",
+      "category": "Fluid Dynamics",
+      "title": "Froude Number",
+      "description": "Fr = v / sqrt(g * L)",
+      "inputs": [
+        {
+          "label": "Velocity (v)",
+          "key": "v",
+          "type": "number",
+          "unit": "m/s",
+          "required": true
+        },
+        {
+          "label": "Gravity (g)",
+          "key": "g",
+          "type": "number",
+          "unit": "m/s^2",
+          "required": true
+        },
+        {
+          "label": "Char. Length (L)",
+          "key": "L",
+          "type": "number",
+          "unit": "m",
+          "required": true
+        }
+      ],
+      "expression": "v / sqrt(g * L)",
+      "output": {
+        "label": "Froude Number (Fr)",
+        "unit": ""
+      },
+      "examples": [
+        {
+          "v": 5,
+          "g": 9.81,
+          "L": 10
+        }
+      ]
+    },
+    {
+      "id": "beam_deflection_center",
+      "category": "Statics",
+      "title": "Beam Deflection (Center Load)",
+      "description": "Simply supported beam. delta = (P * L^3) / (48 * E * I)",
+      "inputs": [
+        {
+          "label": "Load (P)",
+          "key": "P",
+          "type": "number",
+          "unit": "N",
+          "required": true
+        },
+        {
+          "label": "Length (L)",
+          "key": "L",
+          "type": "number",
+          "unit": "m",
+          "required": true
+        },
+        {
+          "label": "Elastic Modulus (E)",
+          "key": "E",
+          "type": "number",
+          "unit": "Pa",
+          "required": true
+        },
+        {
+          "label": "Mom. of Inertia (I)",
+          "key": "I",
+          "type": "number",
+          "unit": "m^4",
+          "required": true
+        }
+      ],
+      "expression": "(P * L^3) / (48 * E * I)",
+      "output": {
+        "label": "Deflection",
+        "unit": "m"
+      },
+      "examples": [
+        {
+          "P": 1000,
+          "L": 5,
+          "E": 2.1e11,
+          "I": 1e-5
+        }
+      ]
+    },
+    {
+      "id": "euler_buckling_load",
+      "category": "Statics",
+      "title": "Euler Buckling Load",
+      "description": "Pcr = (pi^2 * E * I) / (K * L)^2",
+      "inputs": [
+        {
+          "label": "Elastic Modulus (E)",
+          "key": "E",
+          "type": "number",
+          "unit": "Pa",
+          "required": true
+        },
+        {
+          "label": "Mom. of Inertia (I)",
+          "key": "I",
+          "type": "number",
+          "unit": "m^4",
+          "required": true
+        },
+        {
+          "label": "Eff. Length Factor (K)",
+          "key": "K",
+          "type": "number",
+          "unit": "",
+          "required": true
+        },
+        {
+          "label": "Length (L)",
+          "key": "L",
+          "type": "number",
+          "unit": "m",
+          "required": true
+        }
+      ],
+      "expression": "(pi^2 * E * I) / (K * L)^2",
+      "output": {
+        "label": "Crit. Load (Pcr)",
+        "unit": "N"
+      },
+      "examples": [
+        {
+          "E": 2e11,
+          "I": 1e-6,
+          "K": 1,
+          "L": 3
+        }
+      ]
+    },
+    {
+      "id": "normal_stress",
+      "category": "Statics",
+      "title": "Normal Stress",
+      "description": "sigma = F / A",
+      "inputs": [
+        {
+          "label": "Force (F)",
+          "key": "F",
+          "type": "number",
+          "unit": "N",
+          "required": true
+        },
+        {
+          "label": "Area (A)",
+          "key": "A",
+          "type": "number",
+          "unit": "m^2",
+          "required": true
+        }
+      ],
+      "expression": "F / A",
+      "output": {
+        "label": "Stress (sigma)",
+        "unit": "Pa"
+      },
+      "examples": [
+        {
+          "F": 500,
+          "A": 0.01
+        }
+      ]
+    },
+    {
+      "id": "shear_stress",
+      "category": "Statics",
+      "title": "Shear Stress",
+      "description": "tau = F / A_shear",
+      "inputs": [
+        {
+          "label": "Shear Force (F)",
+          "key": "F",
+          "type": "number",
+          "unit": "N",
+          "required": true
+        },
+        {
+          "label": "Shear Area (A)",
+          "key": "A",
+          "type": "number",
+          "unit": "m^2",
+          "required": true
+        }
+      ],
+      "expression": "F / A",
+      "output": {
+        "label": "Shear Stress (tau)",
+        "unit": "Pa"
+      },
+      "examples": [
+        {
+          "F": 1200,
+          "A": 0.005
+        }
+      ]
+    },
+    {
+      "id": "hookes_law_stress",
+      "category": "Material Science",
+      "title": "Stress-Strain (Hooke)",
+      "description": "sigma = E * epsilon",
+      "inputs": [
+        {
+          "label": "Elastic Modulus (E)",
+          "key": "E",
+          "type": "number",
+          "unit": "Pa",
+          "required": true
+        },
+        {
+          "label": "Strain (epsilon)",
+          "key": "ep",
+          "type": "number",
+          "unit": "",
+          "required": true
+        }
+      ],
+      "expression": "E * ep",
+      "output": {
+        "label": "Stress (sigma)",
+        "unit": "Pa"
+      },
+      "examples": [
+        {
+          "E": 2e11,
+          "ep": 0.001
+        }
+      ]
+    },
+    {
+      "id": "ohs_law_ac",
+      "category": "Electromagnetism",
+      "title": "Ohm's Law (AC)",
+      "description": "V = I * Z",
+      "inputs": [
+        {
+          "label": "Current (I)",
+          "key": "I",
+          "type": "number",
+          "unit": "A",
+          "required": true
+        },
+        {
+          "label": "Impedance (Z)",
+          "key": "Z",
+          "type": "number",
+          "unit": "ohm",
+          "required": true
+        }
+      ],
+      "expression": "I * Z",
+      "output": {
+        "label": "Voltage (V)",
+        "unit": "V"
+      },
+      "examples": [
+        {
+          "I": 2,
+          "Z": 50
+        }
+      ]
+    },
+    {
+      "id": "capacitive_reactance",
+      "category": "Electromagnetism",
+      "title": "Capacitive Reactance",
+      "description": "Xc = 1 / (2 * pi * f * C)",
+      "inputs": [
+        {
+          "label": "Frequency (f)",
+          "key": "f",
+          "type": "number",
+          "unit": "Hz",
+          "required": true
+        },
+        {
+          "label": "Capacitance (C)",
+          "key": "C",
+          "type": "number",
+          "unit": "F",
+          "required": true
+        }
+      ],
+      "expression": "1 / (2 * pi * f * C)",
+      "output": {
+        "label": "Reactance (Xc)",
+        "unit": "ohm"
+      },
+      "examples": [
+        {
+          "f": 60,
+          "C": 1e-6
+        }
+      ]
+    },
+    {
+      "id": "inductive_reactance",
+      "category": "Electromagnetism",
+      "title": "Inductive Reactance",
+      "description": "Xl = 2 * pi * f * L",
+      "inputs": [
+        {
+          "label": "Frequency (f)",
+          "key": "f",
+          "type": "number",
+          "unit": "Hz",
+          "required": true
+        },
+        {
+          "label": "Inductance (L)",
+          "key": "L",
+          "type": "number",
+          "unit": "H",
+          "required": true
+        }
+      ],
+      "expression": "2 * pi * f * L",
+      "output": {
+        "label": "Reactance (Xl)",
+        "unit": "ohm"
+      },
+      "examples": [
+        {
+          "f": 60,
+          "L": 0.1
+        }
+      ]
+    },
+    {
+      "id": "resonant_frequency_lc",
+      "category": "Electromagnetism",
+      "title": "Resonant Frequency (LC)",
+      "description": "fr = 1 / (2 * pi * sqrt(L * C))",
+      "inputs": [
+        {
+          "label": "Inductance (L)",
+          "key": "L",
+          "type": "number",
+          "unit": "H",
+          "required": true
+        },
+        {
+          "label": "Capacitance (C)",
+          "key": "C",
+          "type": "number",
+          "unit": "F",
+          "required": true
+        }
+      ],
+      "expression": "1 / (2 * pi * sqrt(L * C))",
+      "output": {
+        "label": "Resonant Freq (fr)",
+        "unit": "Hz"
+      },
+      "examples": [
+        {
+          "L": 0.01,
+          "C": 1e-6
+        }
+      ]
+    },
+    {
+      "id": "laplace_pressure",
+      "category": "Fluid Dynamics",
+      "title": "Laplace Pressure",
+      "description": "dP = 2 * gamma / r (for bubble in liquid)",
+      "inputs": [
+        {
+          "label": "Surface Tension (gamma)",
+          "key": "g",
+          "type": "number",
+          "unit": "N/m",
+          "required": true
+        },
+        {
+          "label": "Radius (r)",
+          "key": "r",
+          "type": "number",
+          "unit": "m",
+          "required": true
+        }
+      ],
+      "expression": "2 * g / r",
+      "output": {
+        "label": "Pressure Diff (dP)",
+        "unit": "Pa"
+      },
+      "examples": [
+        {
+          "g": 0.072,
+          "r": 0.001
+        }
+      ]
+    },
+    {
+      "id": "stefan_boltzmann_law",
+      "category": "Thermodynamics",
+      "title": "Stefan-Boltzmann Law",
+      "description": "P = e * sigma * A * T^4",
+      "inputs": [
+        {
+          "label": "Emissivity (e)",
+          "key": "e",
+          "type": "number",
+          "unit": "",
+          "required": true
+        },
+        {
+          "label": "Area (A)",
+          "key": "A",
+          "type": "number",
+          "unit": "m^2",
+          "required": true
+        },
+        {
+          "label": "Temp (T)",
+          "key": "T",
+          "type": "number",
+          "unit": "K",
+          "required": true
+        }
+      ],
+      "expression": "e * 5.670374419e-8 * A * T^4",
+      "output": {
+        "label": "Power (P)",
+        "unit": "W"
+      },
+      "examples": [
+        {
+          "e": 0.9,
+          "A": 2,
+          "T": 300
+        }
+      ]
+    },
+    {
+      "id": "wiens_displacement_law",
+      "category": "Quantum Mechanics",
+      "title": "Wien's Displacement Law",
+      "description": "lambda_max = b / T",
+      "inputs": [
+        {
+          "label": "Temp (T)",
+          "key": "T",
+          "type": "number",
+          "unit": "K",
+          "required": true
+        }
+      ],
+      "expression": "0.002897771 / T",
+      "output": {
+        "label": "Max Wavelength",
+        "unit": "m"
+      },
+      "examples": [
+        {
+          "T": 5800
+        }
+      ]
+    },
+    {
+      "id": "black_scholes_d1",
+      "category": "Finance",
+      "title": "Black-Scholes d1",
+      "description": "Core component of option pricing",
+      "inputs": [
+        {
+          "label": "Price (S)",
+          "key": "S",
+          "type": "number",
+          "unit": "",
+          "required": true
+        },
+        {
+          "label": "Strike (K)",
+          "key": "K",
+          "type": "number",
+          "unit": "",
+          "required": true
+        },
+        {
+          "label": "Risk-free (r)",
+          "key": "r",
+          "type": "number",
+          "unit": "",
+          "required": true
+        },
+        {
+          "label": "Vol (sigma)",
+          "key": "v",
+          "type": "number",
+          "unit": "",
+          "required": true
+        },
+        {
+          "label": "Time (T)",
+          "key": "T",
+          "type": "number",
+          "unit": "yrs",
+          "required": true
+        }
+      ],
+      "expression": "(log(S / K) + (r + v^2 / 2) * T) / (v * sqrt(T))",
+      "output": {
+        "label": "d1",
+        "unit": ""
+      },
+      "examples": [
+        {
+          "S": 100,
+          "K": 100,
+          "r": 0.05,
+          "v": 0.2,
+          "T": 1
+        }
+      ]
+    },
+    {
+      "id": "haversine_distance",
+      "category": "Navigation",
+      "title": "Haversine Distance (simple)",
+      "description": "Distance between points. delta_sigma = 2 * arcsin(sqrt(hav(phi2-phi1) + cos(phi1)cos(phi2)hav(lon2-lon1)))",
+      "inputs": [
+        {
+          "label": "Lat1 (rad)",
+          "key": "phi1",
+          "type": "number",
+          "unit": "rad",
+          "required": true
+        },
+        {
+          "label": "Lat2 (rad)",
+          "key": "phi2",
+          "type": "number",
+          "unit": "rad",
+          "required": true
+        },
+        {
+          "label": "Lon1 (rad)",
+          "key": "l1",
+          "type": "number",
+          "unit": "rad",
+          "required": true
+        },
+        {
+          "label": "Lon2 (rad)",
+          "key": "l2",
+          "type": "number",
+          "unit": "rad",
+          "required": true
+        },
+        {
+          "label": "Radius (R)",
+          "key": "R",
+          "type": "number",
+          "unit": "km",
+          "required": true
+        }
+      ],
+      "expression": "2 * R * asin(sqrt(sin((phi2-phi1)/2)^2 + cos(phi1) * cos(phi2) * sin((l2-l1)/2)^2))",
+      "output": {
+        "label": "Distance (d)",
+        "unit": "km"
+      },
+      "examples": [
+        {
+          "phi1": 0.9,
+          "phi2": 0.9,
+          "l1": 0.0,
+          "l2": 0.1,
+          "R": 6371
+        }
+      ]
+    },
+    {
+      "id": "ideal_gas_law_n",
+      "category": "Chemistry",
+      "title": "Ideal Gas Law (find n)",
+      "description": "n = PV / RT",
+      "inputs": [
+        {
+          "label": "Pressure (P)",
+          "key": "P",
+          "type": "number",
+          "unit": "Pa",
+          "required": true
+        },
+        {
+          "label": "Volume (V)",
+          "key": "V",
+          "type": "number",
+          "unit": "m^3",
+          "required": true
+        },
+        {
+          "label": "Temp (T)",
+          "key": "T",
+          "type": "number",
+          "unit": "K",
+          "required": true
+        }
+      ],
+      "expression": "(P * V) / (8.314 * T)",
+      "output": {
+        "label": "Moles (n)",
+        "unit": "mol"
+      },
+      "examples": [
+        {
+          "P": 101325,
+          "V": 0.0224,
+          "T": 273
+        }
+      ]
+    },
+    {
+      "id": "arrhenius_equation",
+      "category": "Chemistry",
+      "title": "Arrhenius Equation",
+      "description": "k = A * e^(-Ea / (R * T))",
+      "inputs": [
+        {
+          "label": "Pre-exp Factor (A)",
+          "key": "A",
+          "type": "number",
+          "unit": "",
+          "required": true
+        },
+        {
+          "label": "Activ. Energy (Ea)",
+          "key": "Ea",
+          "type": "number",
+          "unit": "J/mol",
+          "required": true
+        },
+        {
+          "label": "Temp (T)",
+          "key": "T",
+          "type": "number",
+          "unit": "K",
+          "required": true
+        }
+      ],
+      "expression": "A * e^(-Ea / (8.314 * T))",
+      "output": {
+        "label": "Rate Const (k)",
+        "unit": ""
+      },
+      "examples": [
+        {
+          "A": 1e13,
+          "Ea": 50000,
+          "T": 300
+        }
+      ]
+    },
+    {
+      "id": "nernst_equation",
+      "category": "Chemistry",
+      "title": "Nernst Equation",
+      "description": "E = E0 - (RT / nF) * ln(Q)",
+      "inputs": [
+        {
+          "label": "E0",
+          "key": "E0",
+          "type": "number",
+          "unit": "V",
+          "required": true
+        },
+        {
+          "label": "n (electrons)",
+          "key": "n",
+          "type": "number",
+          "unit": "",
+          "required": true
+        },
+        {
+          "label": "Temp (T)",
+          "key": "T",
+          "type": "number",
+          "unit": "K",
+          "required": true
+        },
+        {
+          "label": "Quo. (Q)",
+          "key": "Q",
+          "type": "number",
+          "unit": "",
+          "required": true
+        }
+      ],
+      "expression": "E0 - (8.314 * T / (n * 96485)) * log(Q)",
+      "output": {
+        "label": "Potential (E)",
+        "unit": "V"
+      },
+      "examples": [
+        {
+          "E0": 1.1,
+          "n": 2,
+          "T": 298,
+          "Q": 0.1
+        }
+      ]
+    },
+    {
+      "id": "drag_force",
+      "category": "Aerodynamics",
+      "title": "Drag Force",
+      "description": "Fd = 0.5 * rho * v^2 * Cd * A",
+      "inputs": [
+        {
+          "label": "Density (rho)",
+          "key": "rho",
+          "type": "number",
+          "unit": "kg/m^3",
+          "required": true
+        },
+        {
+          "label": "Velocity (v)",
+          "key": "v",
+          "type": "number",
+          "unit": "m/s",
+          "required": true
+        },
+        {
+          "label": "Drag Coeff (Cd)",
+          "key": "Cd",
+          "type": "number",
+          "unit": "",
+          "required": true
+        },
+        {
+          "label": "Area (A)",
+          "key": "A",
+          "type": "number",
+          "unit": "m^2",
+          "required": true
+        }
+      ],
+      "expression": "0.5 * rho * v^2 * Cd * A",
+      "output": {
+        "label": "Drag (Fd)",
+        "unit": "N"
+      },
+      "examples": [
+        {
+          "rho": 1.225,
+          "v": 30,
+          "Cd": 0.3,
+          "A": 2.5
+        }
+      ]
+    },
+    {
+      "id": "terminal_velocity",
+      "category": "Physics (Mechanics)",
+      "title": "Terminal Velocity",
+      "description": "vt = sqrt((2*m*g) / (rho*A*Cd))",
+      "inputs": [
+        {
+          "label": "Mass (m)",
+          "key": "m",
+          "type": "number",
+          "unit": "kg",
+          "required": true
+        },
+        {
+          "label": "Gravity (g)",
+          "key": "g",
+          "type": "number",
+          "unit": "m/s^2",
+          "required": true
+        },
+        {
+          "label": "Density (rho)",
+          "key": "rho",
+          "type": "number",
+          "unit": "kg/m^3",
+          "required": true
+        },
+        {
+          "label": "Area (A)",
+          "key": "A",
+          "type": "number",
+          "unit": "m^2",
+          "required": true
+        },
+        {
+          "label": "Drag Coeff (Cd)",
+          "key": "Cd",
+          "type": "number",
+          "unit": "",
+          "required": true
+        }
+      ],
+      "expression": "sqrt((2 * m * g) / (rho * A * Cd))",
+      "output": {
+        "label": "Term. Vel (vt)",
+        "unit": "m/s"
+      },
+      "examples": [
+        {
+          "m": 70,
+          "g": 9.81,
+          "rho": 1.225,
+          "A": 0.7,
+          "Cd": 1
+        }
+      ]
+    },
+    {
+      "id": "relativity_gamma",
+      "category": "Quantum Mechanics",
+      "title": "Lorentz Factor",
+      "description": "gamma = 1 / sqrt(1 - v^2/c^2)",
+      "inputs": [
+        {
+          "label": "Velocity (v)",
+          "key": "v",
+          "type": "number",
+          "unit": "m/s",
+          "required": true
+        }
+      ],
+      "expression": "1 / sqrt(1 - v^2 / 299792458^2)",
+      "output": {
+        "label": "Gamma",
+        "unit": ""
+      },
+      "examples": [
+        {
+          "v": 2e8
+        }
+      ]
+    },
+    {
+      "id": "relativity_time_dilation",
+      "category": "Quantum Mechanics",
+      "title": "Time Dilation",
+      "description": "t = t0 / sqrt(1 - v^2/c^2)",
+      "inputs": [
+        {
+          "label": "Prop. Time (t0)",
+          "key": "t0",
+          "type": "number",
+          "unit": "s",
+          "required": true
+        },
+        {
+          "label": "Velocity (v)",
+          "key": "v",
+          "type": "number",
+          "unit": "m/s",
+          "required": true
+        }
+      ],
+      "expression": "t0 / sqrt(1 - v^2 / 299792458^2)",
+      "output": {
+        "label": "Rel. Time (t)",
+        "unit": "s"
+      },
+      "examples": [
+        {
+          "t0": 1,
+          "v": 2.5e8
+        }
+      ]
+    },
+    {
+      "id": "mass_energy_equivalence",
+      "category": "Quantum Mechanics",
+      "title": "Mass-Energy",
+      "description": "E = mc^2",
+      "inputs": [
+        {
+          "label": "Mass (m)",
+          "key": "m",
+          "type": "number",
+          "unit": "kg",
+          "required": true
+        }
+      ],
+      "expression": "m * 299792458^2",
+      "output": {
+        "label": "Energy (E)",
+        "unit": "J"
+      },
+      "examples": [
+        {
+          "m": 0.001
+        }
+      ]
+    },
+    {
+      "id": "entropy_boltzmann",
+      "category": "Thermodynamics",
+      "title": "Boltzmann Entropy",
+      "description": "S = k * ln(W)",
+      "inputs": [
+        {
+          "label": "Microstates (W)",
+          "key": "W",
+          "type": "number",
+          "unit": "",
+          "required": true
+        }
+      ],
+      "expression": "1.380649e-23 * log(W)",
+      "output": {
+        "label": "Entropy (S)",
+        "unit": "J/K"
+      },
+      "examples": [
+        {
+          "W": 1e20
+        }
+      ]
+    },
+    {
+      "id": "vanderwaals_pressure",
+      "category": "Chemistry",
+      "title": "van der Waals Pressure",
+      "description": "P = [nRT / (V - nb)] - [an^2 / V^2]",
+      "inputs": [
+        {
+          "label": "Moles (n)",
+          "key": "n",
+          "type": "number",
+          "unit": "mol",
+          "required": true
+        },
+        {
+          "label": "Temp (T)",
+          "key": "T",
+          "type": "number",
+          "unit": "K",
+          "required": true
+        },
+        {
+          "label": "Volume (V)",
+          "key": "V",
+          "type": "number",
+          "unit": "m^3",
+          "required": true
+        },
+        {
+          "label": "a coeff",
+          "key": "a",
+          "type": "number",
+          "unit": "",
+          "required": true
+        },
+        {
+          "label": "b coeff",
+          "key": "b",
+          "type": "number",
+          "unit": "",
+          "required": true
+        }
+      ],
+      "expression": "(n * 8.314 * T) / (V - n * b) - (a * n^2) / V^2",
+      "output": {
+        "label": "Pressure (P)",
+        "unit": "Pa"
+      },
+      "examples": [
+        {
+          "n": 1,
+          "T": 300,
+          "V": 0.01,
+          "a": 0.4,
+          "b": 4e-5
+        }
+      ]
+    },
+    {
+      "id": "reynolds_stress",
+      "category": "Fluid Dynamics",
+      "title": "Reynolds Stress (simple estimate)",
+      "description": "tau = rho * u_rms * v_rms",
+      "inputs": [
+        {
+          "label": "Density (rho)",
+          "key": "rho",
+          "type": "number",
+          "unit": "kg/m^3",
+          "required": true
+        },
+        {
+          "label": "u' rms",
+          "key": "u",
+          "type": "number",
+          "unit": "m/s",
+          "required": true
+        },
+        {
+          "label": "v' rms",
+          "key": "v",
+          "type": "number",
+          "unit": "m/s",
+          "required": true
+        }
+      ],
+      "expression": "rho * u * v",
+      "output": {
+        "label": "Stress (tau)",
+        "unit": "Pa"
+      },
+      "examples": [
+        {
+          "rho": 1000,
+          "u": 0.1,
+          "v": 0.1
+        }
+      ]
+    },
+    {
+      "id": "strouhal_number",
+      "category": "Fluid Dynamics",
+      "title": "Strouhal Number",
+      "description": "St = f * L / v",
+      "inputs": [
+        {
+          "label": "Freq (f)",
+          "key": "f",
+          "type": "number",
+          "unit": "Hz",
+          "required": true
+        },
+        {
+          "label": "Length (L)",
+          "key": "L",
+          "type": "number",
+          "unit": "m",
+          "required": true
+        },
+        {
+          "label": "Velocity (v)",
+          "key": "v",
+          "type": "number",
+          "unit": "m/s",
+          "required": true
+        }
+      ],
+      "expression": "f * L / v",
+      "output": {
+        "label": "Strouhal (St)",
+        "unit": ""
+      },
+      "examples": [
+        {
+          "f": 2,
+          "L": 0.5,
+          "v": 10
+        }
+      ]
+    },
+    {
+      "id": "peltier_coefficient",
+      "category": "Electromagnetism",
+      "title": "Peltier Cooling Heat",
+      "description": "Q = Pi * I * t",
+      "inputs": [
+        {
+          "label": "Peltier Coeff (Pi)",
+          "key": "Pi",
+          "type": "number",
+          "unit": "V",
+          "required": true
+        },
+        {
+          "label": "Current (I)",
+          "key": "I",
+          "type": "number",
+          "unit": "A",
+          "required": true
+        },
+        {
+          "label": "Time (t)",
+          "key": "t",
+          "type": "number",
+          "unit": "s",
+          "required": true
+        }
+      ],
+      "expression": "Pi * I * t",
+      "output": {
+        "label": "Heat (Q)",
+        "unit": "J"
+      },
+      "examples": [
+        {
+          "Pi": 0.1,
+          "I": 3,
+          "t": 60
+        }
+      ]
+    },
+    {
+      "id": "hall_voltage",
+      "category": "Electromagnetism",
+      "title": "Hall Voltage",
+      "description": "Vh = (I * B) / (n * e * d)",
+      "inputs": [
+        {
+          "label": "Current (I)",
+          "key": "I",
+          "type": "number",
+          "unit": "A",
+          "required": true
+        },
+        {
+          "label": "Mag Field (B)",
+          "key": "B",
+          "type": "number",
+          "unit": "T",
+          "required": true
+        },
+        {
+          "label": "Charge Dens (n)",
+          "key": "n",
+          "type": "number",
+          "unit": "m^-3",
+          "required": true
+        },
+        {
+          "label": "Thickness (d)",
+          "key": "d",
+          "type": "number",
+          "unit": "m",
+          "required": true
+        }
+      ],
+      "expression": "(I * B) / (n * 1.602e-19 * d)",
+      "output": {
+        "label": "Hall Voltage (Vh)",
+        "unit": "V"
+      },
+      "examples": [
+        {
+          "I": 1,
+          "B": 1,
+          "n": 1e23,
+          "d": 0.001
+        }
+      ]
+    },
+    {
+      "id": "braking_distance",
+      "category": "Physics (Mechanics)",
+      "title": "Braking Distance",
+      "description": "d = v^2 / (2 * mu * g)",
+      "inputs": [
+        {
+          "label": "Velocity (v)",
+          "key": "v",
+          "type": "number",
+          "unit": "m/s",
+          "required": true
+        },
+        {
+          "label": "Friction (mu)",
+          "key": "mu",
+          "type": "number",
+          "unit": "",
+          "required": true
+        },
+        {
+          "label": "Gravity (g)",
+          "key": "g",
+          "type": "number",
+          "unit": "m/s^2",
+          "required": true
+        }
+      ],
+      "expression": "v^2 / (2 * mu * g)",
+      "output": {
+        "label": "Distance (d)",
+        "unit": "m"
+      },
+      "examples": [
+        {
+          "v": 20,
+          "mu": 0.7,
+          "g": 9.81
+        }
+      ]
+    },
+    {
+      "id": "projectile_range",
+      "category": "Physics (Mechanics)",
+      "title": "Projectile Range",
+      "description": "R = (v^2 * sin(2*theta)) / g",
+      "inputs": [
+        {
+          "label": "Velocity (v)",
+          "key": "v",
+          "type": "number",
+          "unit": "m/s",
+          "required": true
+        },
+        {
+          "label": "Angle (rad)",
+          "key": "t",
+          "type": "number",
+          "unit": "rad",
+          "required": true
+        },
+        {
+          "label": "Gravity (g)",
+          "key": "g",
+          "type": "number",
+          "unit": "m/s^2",
+          "required": true
+        }
+      ],
+      "expression": "(v^2 * sin(2 * t)) / g",
+      "output": {
+        "label": "Range (R)",
+        "unit": "m"
+      },
+      "examples": [
+        {
+          "v": 50,
+          "t": 0.785,
+          "g": 9.81
+        }
+      ]
+    },
+    {
+      "id": "shannon_capacity",
+      "category": "Information Theory",
+      "title": "Shannon Capacity",
+      "description": "C = B * log2(1 + S/N)",
+      "inputs": [
+        {
+          "label": "Bandwidth (B)",
+          "key": "B",
+          "type": "number",
+          "unit": "Hz",
+          "required": true
+        },
+        {
+          "label": "SNR (ratio)",
+          "key": "snr",
+          "type": "number",
+          "unit": "",
+          "required": true
+        }
+      ],
+      "expression": "B * log2(1 + snr)",
+      "output": {
+        "label": "Capacity (C)",
+        "unit": "bps"
+      },
+      "examples": [
+        {
+          "B": 1000000,
+          "snr": 10
         }
       ]
     }
