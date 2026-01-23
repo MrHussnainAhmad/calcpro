@@ -1,14 +1,23 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, Animated } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, Animated, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../constants/Colors';
 import { useNavigation } from '@react-navigation/native';
-import { derivative } from 'mathjs';
+// @ts-ignore
+import nerdamer from 'nerdamer';
+import 'nerdamer/Algebra';
+import 'nerdamer/Calculus';
+import 'nerdamer/Solve';
+
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
+import { Ionicons } from '@expo/vector-icons';
+
+type SolverMode = 'Derivative' | 'Integral' | 'Solve';
 
 export default function CalculusScreen() {
     const navigation = useNavigation();
+    const [mode, setMode] = useState<SolverMode>('Derivative');
     const [expression, setExpression] = useState('');
     const [variable, setVariable] = useState('x');
     const [result, setResult] = useState<string | null>(null);
@@ -17,13 +26,29 @@ export default function CalculusScreen() {
     const handleCalculate = () => {
         if (!expression) return;
         try {
-            const res = derivative(expression, variable).toString();
+            let res = '';
+            const cleanExp = expression.replace(/ /g, '');
+
+            switch (mode) {
+                case 'Derivative':
+                    res = nerdamer(`diff(${cleanExp}, ${variable})`).toString();
+                    break;
+                case 'Integral':
+                    res = nerdamer(`integrate(${cleanExp}, ${variable})`).toString();
+                    break;
+                case 'Solve':
+                    // nerdamer.solve returns an array of possible values
+                    const sol = (nerdamer as any).solve(cleanExp, variable);
+                    res = sol.toString();
+                    break;
+            }
+
             setResult(res);
             setError(null);
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        } catch (e) {
+        } catch (e: any) {
             setResult(null);
-            setError('Invalid expression');
+            setError(e.message || 'Invalid expression');
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         }
     };
@@ -36,39 +61,61 @@ export default function CalculusScreen() {
         }
     };
 
+    const toggleMode = (newMode: SolverMode) => {
+        setMode(newMode);
+        setResult(null);
+        setError(null);
+    };
+
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <Text style={styles.backText}>{'< Back'}</Text>
+                    <Ionicons name="chevron-back" size={24} color={Colors.accent} />
                 </TouchableOpacity>
-                <Text style={styles.title}>Calculus (Derivatives)</Text>
+                <Text style={styles.title}>Advanced Math Solver</Text>
+            </View>
+
+            <View style={styles.tabContainer}>
+                {(['Derivative', 'Integral', 'Solve'] as SolverMode[]).map((m) => (
+                    <TouchableOpacity
+                        key={m}
+                        style={[styles.tab, mode === m && styles.activeTab]}
+                        onPress={() => toggleMode(m)}
+                    >
+                        <Text style={[styles.tabText, mode === m && styles.activeTabText]}>{m}</Text>
+                    </TouchableOpacity>
+                ))}
             </View>
 
             <ScrollView contentContainerStyle={styles.content}>
                 <View style={styles.card}>
-                    <Text style={styles.label}>Function to differentiate:</Text>
+                    <Text style={styles.label}>
+                        {mode === 'Solve' ? 'Equation (e.g. x^2 - 4):' : 'Function:'}
+                    </Text>
                     <TextInput
                         style={styles.input}
-                        placeholder="e.g. x^2 + sin(x)"
+                        placeholder={mode === 'Solve' ? "x^2 - 4" : "x^2 + sin(x)"}
                         placeholderTextColor={Colors.textSecondary}
                         value={expression}
                         onChangeText={setExpression}
                         autoCapitalize="none"
+                        autoCorrect={false}
                     />
 
-                    <Text style={styles.label}>Respect to variable:</Text>
+                    <Text style={styles.label}>Variable (usually x):</Text>
                     <TextInput
                         style={styles.input}
-                        placeholder="e.g. x"
+                        placeholder="x"
                         placeholderTextColor={Colors.textSecondary}
                         value={variable}
                         onChangeText={setVariable}
                         autoCapitalize="none"
+                        autoCorrect={false}
                     />
 
                     <TouchableOpacity style={styles.calculateBtn} onPress={handleCalculate}>
-                        <Text style={styles.btnText}>Calculate Derivative</Text>
+                        <Text style={styles.btnText}>Calculate {mode}</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -86,6 +133,14 @@ export default function CalculusScreen() {
                         <Text style={styles.errorText}>{error}</Text>
                     </View>
                 )}
+
+                <View style={styles.guide}>
+                    <Text style={styles.guideTitle}>Quick Guide:</Text>
+                    <Text style={styles.guideText}>• Derivative: `sin(x) + x^2` → `cos(x) + 2x`</Text>
+                    <Text style={styles.guideText}>• Integral: `2*x` → `x^2`</Text>
+                    <Text style={styles.guideText}>• Solve: `x^2 - 9` → `[-3, 3]`</Text>
+                    <Text style={styles.guideText}>• Exponent: `x^3`, Multiplication: `2*x`</Text>
+                </View>
             </ScrollView>
         </SafeAreaView>
     );
@@ -104,16 +159,35 @@ const styles = StyleSheet.create({
         borderBottomColor: Colors.gray,
     },
     backButton: {
-        marginRight: 15,
-    },
-    backText: {
-        color: Colors.accent,
-        fontSize: 16,
+        marginRight: 10,
     },
     title: {
         color: Colors.textPrimary,
         fontSize: 20,
         fontWeight: 'bold',
+    },
+    tabContainer: {
+        flexDirection: 'row',
+        padding: 10,
+        backgroundColor: Colors.secondary,
+        margin: 15,
+        borderRadius: 12,
+    },
+    tab: {
+        flex: 1,
+        paddingVertical: 10,
+        alignItems: 'center',
+        borderRadius: 8,
+    },
+    activeTab: {
+        backgroundColor: Colors.accent,
+    },
+    tabText: {
+        color: Colors.textSecondary,
+        fontWeight: '600',
+    },
+    activeTabText: {
+        color: 'white',
     },
     content: {
         padding: 20,
@@ -146,25 +220,29 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     btnText: {
-        color: Colors.textPrimary,
+        color: 'white',
         fontSize: 18,
         fontWeight: 'bold',
     },
     resultCard: {
-        backgroundColor: Colors.accent, // Use accent but maybe slightly transparent if we had alpha
+        backgroundColor: '#1E3A5F', // Darker blue for result
         padding: 20,
         borderRadius: 15,
         alignItems: 'center',
+        borderWidth: 1,
+        borderColor: Colors.accent,
     },
     resultLabel: {
         color: 'white',
-        fontSize: 14,
+        fontSize: 12,
         marginBottom: 10,
-        opacity: 0.8,
+        opacity: 0.7,
+        textTransform: 'uppercase',
+        letterSpacing: 1,
     },
     resultText: {
         color: 'white',
-        fontSize: 24,
+        fontSize: 22,
         fontWeight: 'bold',
         textAlign: 'center',
     },
@@ -179,5 +257,22 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 16,
         fontWeight: 'bold',
+    },
+    guide: {
+        marginTop: 30,
+        padding: 15,
+        backgroundColor: 'rgba(255,255,255,0.03)',
+        borderRadius: 10,
+    },
+    guideTitle: {
+        color: Colors.accent,
+        fontWeight: 'bold',
+        marginBottom: 10,
+    },
+    guideText: {
+        color: Colors.textSecondary,
+        fontSize: 14,
+        marginBottom: 5,
+        fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     },
 });

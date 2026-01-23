@@ -500,6 +500,26 @@ export default function FormulaScreen({ navigation }: any) {
                     </TouchableOpacity>
                 </View>
 
+                {/* Linear Algebra Shortcut */}
+                <View style={styles.calculusPromo}>
+                    <Text style={styles.calculusPromoTitle}>Solve Linear Algebra Problems</Text>
+                    <TouchableOpacity
+                        style={[styles.calculusButton, { borderColor: 'rgba(10,132,255,0.3)' }]}
+                        activeOpacity={0.8}
+                        onPress={() => navigation.navigate('Matrix')}
+                    >
+                        <LinearGradient
+                            colors={COLORS.accentGradient as [string, string]}
+                            style={styles.calculusGradient}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 0 }}
+                        >
+                            <Ionicons name="grid" size={20} color="#fff" style={{ marginRight: 8 }} />
+                            <Text style={styles.calculusButtonText}>Matrix Solver (Determinant, Inverse)</Text>
+                        </LinearGradient>
+                    </TouchableOpacity>
+                </View>
+
                 {/* Filter Chips - FIXED */}
                 <ScrollView
                     horizontal

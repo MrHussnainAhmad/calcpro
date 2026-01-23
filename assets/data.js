@@ -2297,6 +2297,67 @@ const formulas = [
         expression: "B * A * cos(theta)",
         output: { label: "Flux", unit: "Wb" },
         examples: [{ B: 0.5, A: 0.1, theta: 0 }]
+    },
+    // ============================================================
+    // University Physics (Mechanics & Thermodynamics)
+    // ============================================================
+    {
+        id: "moment_of_inertia_disk",
+        category: "University Physics (Mechanics)",
+        title: "Moment of Inertia (Disk)",
+        description: "I = 0.5 * M * R^2",
+        inputs: [
+            { label: "Mass M", key: "M", type: "number", unit: "kg", required: true },
+            { label: "Radius R", key: "R", type: "number", unit: "m", required: true }
+        ],
+        expression: "0.5 * M * R^2",
+        output: { label: "I", unit: "kg·m^2" },
+        examples: [{ M: 2, R: 0.5 }]
+    },
+    {
+        id: "carnot_efficiency",
+        category: "University Physics (Thermodynamics)",
+        title: "Carnot Efficiency",
+        description: "eta = 1 - (Tc / Th)",
+        inputs: [
+            { label: "Cold Temp Tc", key: "Tc", type: "number", unit: "K", required: true },
+            { label: "Hot Temp Th", key: "Th", type: "number", unit: "K", required: true }
+        ],
+        expression: "1 - (Tc / Th)",
+        output: { label: "Efficiency", unit: "" },
+        examples: [{ Tc: 300, Th: 500 }]
+    },
+    // ============================================================
+    // Numerical Computing
+    // ============================================================
+    {
+        id: "trapezoidal_rule",
+        category: "Numerical Computing",
+        title: "Trapezoidal Rule (1 step)",
+        description: "I ≈ (b-a)/2 * (f(a) + f(b))",
+        inputs: [
+            { label: "Start a", key: "a", type: "number", unit: "", required: true },
+            { label: "End b", key: "b", type: "number", unit: "", required: true },
+            { label: "f(a)", key: "fa", type: "number", unit: "", required: true },
+            { label: "f(b)", key: "fb", type: "number", unit: "", required: true }
+        ],
+        expression: "((b - a) / 2) * (fa + fb)",
+        output: { label: "Integral", unit: "" },
+        examples: [{ a: 0, b: 2, fa: 0, fb: 4 }]
+    },
+    {
+        id: "newton_method_step",
+        category: "Numerical Computing",
+        title: "Newton's Method (1 iteration)",
+        description: "x1 = x0 - f(x0)/f'(x0)",
+        inputs: [
+            { label: "Initial Guess x0", key: "x0", type: "number", unit: "", required: true },
+            { label: "Value f(x0)", key: "fx0", type: "number", unit: "", required: true },
+            { label: "Deriv. f'(x0)", key: "fpx0", type: "number", unit: "", required: true }
+        ],
+        expression: "x0 - (fx0 / fpx0)",
+        output: { label: "Next x1", unit: "" },
+        examples: [{ x0: 1, fx0: 0.5, fpx0: 2 }]
     }
 ];
 

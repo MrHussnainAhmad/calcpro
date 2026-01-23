@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Calculator from './components/Calculator';
 import FormulaScreen from './screens/FormulaScreen';
 import CalculusScreen from './screens/CalculusScreen';
+import MatrixScreen from './screens/MatrixScreen';
 import { Colors } from './constants/Colors';
 
 const Stack = createNativeStackNavigator();
@@ -17,6 +18,7 @@ export default function App() {
         <Stack.Screen name="Home" component={Calculator} />
         <Stack.Screen name="Formula" component={FormulaScreen} />
         <Stack.Screen name="Calculus" component={CalculusScreen} />
+        <Stack.Screen name="Matrix" component={MatrixScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
