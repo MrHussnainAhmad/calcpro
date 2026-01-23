@@ -2144,6 +2144,159 @@ const formulas = [
         expression: "lambda1 * abs(w) + lambda2 * w^2",
         output: { label: "Penalty", unit: "" },
         examples: [{ w: 2, lambda1: 0.1, lambda2: 0.05 }]
+    },
+    // ============================================================
+    // University Physics (Fluid Dynamics)
+    // ============================================================
+    {
+        id: "bernoullis_equation_p",
+        category: "University Physics (Fluid Dynamics)",
+        title: "Bernoulli's Eq (P1)",
+        description: "P1 = P2 + 0.5rho(v2^2-v1^2) + rhog(h2-h1)",
+        inputs: [
+            { label: "Pressure P2", key: "P2", type: "number", unit: "Pa", required: true },
+            { label: "Density rho", key: "rho", type: "number", unit: "kg/m^3", required: true },
+            { label: "Velocity v1", key: "v1", type: "number", unit: "m/s", required: true },
+            { label: "Velocity v2", key: "v2", type: "number", unit: "m/s", required: true },
+            { label: "Height h1", key: "h1", type: "number", unit: "m", required: true },
+            { label: "Height h2", key: "h2", type: "number", unit: "m", required: true },
+            { label: "Gravity g", key: "g", type: "number", unit: "m/s^2", required: true }
+        ],
+        expression: "P2 + 0.5 * rho * (v2^2 - v1^2) + rho * g * (h2 - h1)",
+        output: { label: "Pressure P1", unit: "Pa" },
+        examples: [{ P2: 101325, rho: 1000, v1: 2, v2: 5, h1: 0, h2: 1, g: 9.81 }]
+    },
+    {
+        id: "poiseuilles_law",
+        category: "University Physics (Fluid Dynamics)",
+        title: "Poiseuille's Law",
+        description: "Q = (pi r^4 dP) / (8 eta L)",
+        inputs: [
+            { label: "Radius r", key: "r", type: "number", unit: "m", required: true },
+            { label: "Press. Diff dP", key: "dP", type: "number", unit: "Pa", required: true },
+            { label: "Viscosity eta", key: "eta", type: "number", unit: "Pa·s", required: true },
+            { label: "Length L", key: "L", type: "number", unit: "m", required: true }
+        ],
+        expression: "(pi * r^4 * dP) / (8 * eta * L)",
+        output: { label: "Flow Rate Q", unit: "m^3/s" },
+        examples: [{ r: 0.01, dP: 100, eta: 0.001, L: 2 }]
+    },
+    {
+        id: "reynolds_number",
+        category: "University Physics (Fluid Dynamics)",
+        title: "Reynolds Number",
+        description: "Re = (rho v D) / eta",
+        inputs: [
+            { label: "Density rho", key: "rho", type: "number", unit: "kg/m^3", required: true },
+            { label: "Velocity v", key: "v", type: "number", unit: "m/s", required: true },
+            { label: "Diameter D", key: "D", type: "number", unit: "m", required: true },
+            { label: "Viscosity eta", key: "eta", type: "number", unit: "Pa·s", required: true }
+        ],
+        expression: "(rho * v * D) / eta",
+        output: { label: "Reynolds Num", unit: "" },
+        examples: [{ rho: 1000, v: 2, D: 0.1, eta: 0.001 }]
+    },
+
+    // ============================================================
+    // University Mathemetics (Calculus II)
+    // ============================================================
+    {
+        id: "taylor_series_2nd_order",
+        category: "University Math (Calculus II)",
+        title: "Taylor Approx (2nd Order)",
+        description: "f(x) ≈ f(a) + f'(a)(x-a) + f''(a)/2(x-a)^2",
+        inputs: [
+            { label: "f(a)", key: "fa", type: "number", unit: "", required: true },
+            { label: "f'(a)", key: "fpa", type: "number", unit: "", required: true },
+            { label: "f''(a)", key: "fppa", type: "number", unit: "", required: true },
+            { label: "x", key: "x", type: "number", unit: "", required: true },
+            { label: "a", key: "a", type: "number", unit: "", required: true }
+        ],
+        expression: "fa + fpa * (x - a) + (fppa / 2) * (x - a)^2",
+        output: { label: "f(x) approx", unit: "" },
+        examples: [{ fa: 1, fpa: 1, fppa: 1, x: 0.1, a: 0 }]
+    },
+    {
+        id: "simpsons_rule",
+        category: "University Math (Calculus II)",
+        title: "Simpson's Rule (1 step)",
+        description: "I ≈ (b-a)/6 * (f(a) + 4f(m) + f(b))",
+        inputs: [
+            { label: "Start a", key: "a", type: "number", unit: "", required: true },
+            { label: "End b", key: "b", type: "number", unit: "", required: true },
+            { label: "f(a)", key: "fa", type: "number", unit: "", required: true },
+            { label: "f((a+b)/2)", key: "fm", type: "number", unit: "", required: true },
+            { label: "f(b)", key: "fb", type: "number", unit: "", required: true }
+        ],
+        expression: "((b - a) / 6) * (fa + 4 * fm + fb)",
+        output: { label: "Integral", unit: "" },
+        examples: [{ a: 0, b: 2, fa: 0, fm: 1, fb: 4 }]
+    },
+
+    // ============================================================
+    // University Math (Linear Algebra)
+    // ============================================================
+    {
+        id: "eigenvalue_2x2_char_eq",
+        category: "University Math (Linear Algebra)",
+        title: "Eigenvalues (2x2) Trace/Det",
+        description: "lambda^2 - tr(A)lambda + det(A) = 0",
+        inputs: [
+            { label: "Tr(A)", key: "tr", type: "number", unit: "", required: true },
+            { label: "Det(A)", key: "det", type: "number", unit: "", required: true }
+        ],
+        expression: "(tr + sqrt(tr^2 - 4*det)) / 2",
+        output: { label: "Lambda 1", unit: "" },
+        examples: [{ tr: 5, det: 6 }]
+    },
+    {
+        id: "vector_projection",
+        category: "University Math (Linear Algebra)",
+        title: "Vector Projection (a on b)",
+        description: "Proj = (a.b / |b|^2) * b (returns mag coeff)",
+        inputs: [
+            { label: "a1", key: "a1", type: "number", unit: "", required: true },
+            { label: "a2", key: "a2", type: "number", unit: "", required: true },
+            { label: "b1", key: "b1", type: "number", unit: "", required: true },
+            { label: "b2", key: "b2", type: "number", unit: "", required: true }
+        ],
+        expression: "(a1*b1 + a2*b2) / (b1^2 + b2^2)",
+        output: { label: "Coeff c in c*b", unit: "" },
+        examples: [{ a1: 1, a2: 2, b1: 3, b2: 4 }]
+    },
+
+    // ============================================================
+    // University Physics (Electromagnetism)
+    // ============================================================
+    {
+        id: "coulomb_force_vector_mag",
+        category: "University Physics (Electromagnetism)",
+        title: "Coulomb Force 3D (Mag)",
+        description: "F = k q1 q2 / |r|^2",
+        inputs: [
+            { label: "q1", key: "q1", type: "number", unit: "C", required: true },
+            { label: "q2", key: "q2", type: "number", unit: "C", required: true },
+            { label: "rx", key: "rx", type: "number", unit: "m", required: true },
+            { label: "ry", key: "ry", type: "number", unit: "m", required: true },
+            { label: "rz", key: "rz", type: "number", unit: "m", required: true }
+        ],
+        expression: "(8.987e9 * abs(q1 * q2)) / (rx^2 + ry^2 + rz^2)",
+        output: { label: "|F|", unit: "N" },
+        examples: [{ q1: 1e-6, q2: -1e-6, rx: 0.1, ry: 0.1, rz: 0 }]
+    },
+    {
+        id: "magnetic_flux",
+        category: "University Physics (Electromagnetism)",
+        title: "Magnetic Flux",
+        description: "Phi = B A cos(theta)",
+        inputs: [
+            { label: "B field", key: "B", type: "number", unit: "T", required: true },
+            { label: "Area A", key: "A", type: "number", unit: "m^2", required: true },
+            { label: "Angle theta", key: "theta", type: "number", unit: "rad", required: true }
+        ],
+        expression: "B * A * cos(theta)",
+        output: { label: "Flux", unit: "Wb" },
+        examples: [{ B: 0.5, A: 0.1, theta: 0 }]
     }
 ];
 

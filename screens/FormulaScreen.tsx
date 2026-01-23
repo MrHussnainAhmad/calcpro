@@ -21,6 +21,8 @@ import { formulas } from '../assets/data';
 import { evaluate } from 'mathjs';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Clipboard from 'expo-clipboard';
+import * as Haptics from 'expo-haptics';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -195,6 +197,15 @@ const FormulaItem = memo(({ item }: { item: FormulaData }) => {
     const [inputs, setInputs] = useState<Record<string, string>>({});
     const [result, setResult] = useState<string | null>(null);
     const [expanded, setExpanded] = useState(false);
+    const [copyStatus, setCopyStatus] = useState<string | null>(null);
+
+    const handleCopy = useCallback(async (text: string | null, label: string) => {
+        if (!text) return;
+        await Clipboard.setStringAsync(text);
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        setCopyStatus(label);
+        setTimeout(() => setCopyStatus(null), 2000);
+    }, []);
 
     const toggleExpand = useCallback(() => {
         LayoutAnimation.configureNext({
@@ -242,15 +253,23 @@ const FormulaItem = memo(({ item }: { item: FormulaData }) => {
             {/* Card Header */}
             <TouchableOpacity
                 onPress={toggleExpand}
+                onLongPress={() => handleCopy(item.expression, 'Formula')}
+                delayLongPress={500}
                 activeOpacity={0.7}
                 style={styles.cardHeader}
             >
+
                 <View style={styles.cardHeaderLeft}>
                     <View style={styles.cardIcon}>
                         <Ionicons name="calculator" size={16} color={COLORS.orange} />
                     </View>
                     <View style={styles.cardHeaderText}>
-                        <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
+                            {copyStatus === 'Formula' && (
+                                <Text style={{ marginLeft: 8, color: COLORS.green, fontSize: 10, fontWeight: 'bold' }}>Copied!</Text>
+                            )}
+                        </View>
                         <Text style={styles.cardFormula} numberOfLines={1}>{item.expression}</Text>
                     </View>
                 </View>
@@ -306,7 +325,11 @@ const FormulaItem = memo(({ item }: { item: FormulaData }) => {
 
                     {/* Result Display */}
                     {result && (
-                        <View style={styles.resultDisplay}>
+                        <TouchableOpacity
+                            activeOpacity={0.8}
+                            onPress={() => !isError && handleCopy(result, 'Result')}
+                            style={styles.resultDisplay}
+                        >
                             <LinearGradient
                                 colors={isError
                                     ? ['rgba(255,69,58,0.15)', 'rgba(255,69,58,0.05)']
@@ -317,9 +340,16 @@ const FormulaItem = memo(({ item }: { item: FormulaData }) => {
                                     isError && styles.resultGradientError
                                 ]}
                             >
-                                <Text style={styles.resultLabel}>
-                                    {item.output?.label || 'Result'}
-                                </Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+                                    <Text style={styles.resultLabel}>
+                                        {item.output?.label || 'Result'}
+                                    </Text>
+                                    {copyStatus === 'Result' && (
+                                        <Text style={{ marginLeft: 8, color: COLORS.green, fontSize: 11, fontWeight: '600' }}>
+                                            Copied!
+                                        </Text>
+                                    )}
+                                </View>
                                 <Text style={[
                                     styles.resultValue,
                                     isError && styles.resultValueError
@@ -327,7 +357,7 @@ const FormulaItem = memo(({ item }: { item: FormulaData }) => {
                                     {result}
                                 </Text>
                             </LinearGradient>
-                        </View>
+                        </TouchableOpacity>
                     )}
                 </View>
             )}
@@ -448,6 +478,26 @@ export default function FormulaScreen({ navigation }: any) {
                             </TouchableOpacity>
                         )}
                     </View>
+                </View>
+
+                {/* Calculus Shortcut */}
+                <View style={styles.calculusPromo}>
+                    <Text style={styles.calculusPromoTitle}>Get calculus answers better here</Text>
+                    <TouchableOpacity
+                        style={styles.calculusButton}
+                        activeOpacity={0.8}
+                        onPress={() => navigation.navigate('Calculus')}
+                    >
+                        <LinearGradient
+                            colors={COLORS.orangeGradient as [string, string]}
+                            style={styles.calculusGradient}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 0 }}
+                        >
+                            <Ionicons name="infinite" size={20} color="#fff" style={{ marginRight: 8 }} />
+                            <Text style={styles.calculusButtonText}>Calculus Solver (Derivatives)</Text>
+                        </LinearGradient>
+                    </TouchableOpacity>
                 </View>
 
                 {/* Filter Chips - FIXED */}
@@ -839,5 +889,36 @@ const styles = StyleSheet.create({
         color: COLORS.gray1,
         fontSize: 14,
         marginTop: 4,
+    },
+
+    // Calculus Promo
+    calculusPromo: {
+        paddingHorizontal: 16,
+        marginBottom: 16,
+    },
+    calculusPromoTitle: {
+        color: COLORS.gray1,
+        fontSize: 12,
+        fontWeight: '600',
+        textTransform: 'uppercase',
+        letterSpacing: 0.8,
+        marginBottom: 12,
+    },
+    calculusButton: {
+        borderRadius: 12,
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: 'rgba(255,159,10,0.3)',
+    },
+    calculusGradient: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 14,
+    },
+    calculusButtonText: {
+        color: '#fff',
+        fontSize: 15,
+        fontWeight: '600',
     },
 });

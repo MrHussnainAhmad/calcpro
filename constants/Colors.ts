@@ -6,4 +6,5 @@ export const Colors = {
   accent: '#ff9f0a', // iOS calculator orange
   textPrimary: '#ffffff',
   textSecondary: '#000000',
+  secondary: '#1C1C1E', // Dark gray for card backgrounds
 };

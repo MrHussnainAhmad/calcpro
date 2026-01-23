@@ -10,9 +10,10 @@ interface CalculatorButtonProps {
     size?: 'double' | 'single';
     theme?: 'secondary' | 'accent' | 'primary';
     style?: ViewStyle;
+    textStyle?: TextStyle;
 }
 
-export default function CalculatorButton({ onPress, text, size = 'single', theme = 'primary', style }: CalculatorButtonProps) {
+export default function CalculatorButton({ onPress, text, size = 'single', theme = 'primary', style, textStyle }: CalculatorButtonProps) {
     const buttonStyles: ViewStyle[] = [styles.button];
     const textStyles: TextStyle[] = [styles.text];
 
@@ -37,7 +38,17 @@ export default function CalculatorButton({ onPress, text, size = 'single', theme
 
     return (
         <TouchableOpacity onPress={handlePress} style={buttonStyles}>
-            <Text style={[textStyles, text.length > 2 && { fontSize: 18 }]} numberOfLines={1}>{text}</Text>
+            <Text
+                style={[
+                    textStyles,
+                    text.length > 2 && { fontSize: 18 },
+                    text === '.' && { fontSize: 40, marginTop: -10 }, // Nudge dot up
+                    textStyle
+                ]}
+                numberOfLines={1}
+            >
+                {text}
+            </Text>
         </TouchableOpacity>
     );
 }
@@ -68,7 +79,8 @@ const styles = StyleSheet.create({
         color: Colors.textPrimary,
         fontSize: 30,
         fontWeight: '500',
-        textAlign: 'center', // Fix for centering
+        includeFontPadding: false, // Critical for Android vertical centering
+        backgroundColor: 'transparent', // Ensure no hidden box issues
     },
     textSecondary: {
         color: Colors.textSecondary,
