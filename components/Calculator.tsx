@@ -1,18 +1,34 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, ScrollView } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../constants/Colors';
 import CalculatorButton from './CalculatorButton';
 import { Audio } from 'expo-av';
 import * as Haptics from 'expo-haptics';
 import { useNavigation } from '@react-navigation/native';
-import { evaluate } from 'mathjs';
+import { evaluate } from '../lib/math';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Calculator() {
     const navigation = useNavigation();
     const [currentValue, setCurrentValue] = useState<string>('0');
     const [isScientific, setIsScientific] = useState(false);
     const [sound, setSound] = useState<Audio.Sound>();
+    const [history, setHistory] = useState<string[]>([]);
+    const [showHistory, setShowHistory] = useState(false);
+
+    // Load history
+    useEffect(() => {
+        const loadHistory = async () => {
+            const saved = await AsyncStorage.getItem('calc_history');
+            if (saved) setHistory(JSON.parse(saved));
+        };
+        loadHistory();
+    }, []);
+
+    const saveHistory = async (newHistory: string[]) => {
+        await AsyncStorage.setItem('calc_history', JSON.stringify(newHistory));
+    };
 
     // Load sound
     useEffect(() => {
@@ -39,7 +55,7 @@ export default function Calculator() {
         }
     };
 
-    const handlePress = (text: string) => {
+    const handlePress = useCallback((text: string) => {
         if (text !== 'Sci' && text !== 'Formula') {
             playSound();
         }
@@ -58,6 +74,17 @@ export default function Calculator() {
 
         if (text === 'Sci') {
             setIsScientific(!isScientific);
+            return;
+        }
+
+        if (text === 'Hist') {
+            setShowHistory(!showHistory);
+            return;
+        }
+
+        if (text === 'Adv') {
+            // @ts-ignore
+            navigation.navigate('AdvancedMenu');
             return;
         }
 
@@ -81,14 +108,24 @@ export default function Calculator() {
                 // If user pressed 'sin', we added 'sin('.
 
                 const result = evaluate(expression);
+                let finalVal = '';
                 // Format: limit decimals if long
                 if (typeof result === 'number') {
                     // Check for very small numbers (precision issues)
-                    const resultStr = parseFloat(result.toPrecision(10)).toString();
-                    setCurrentValue(resultStr);
+                    finalVal = parseFloat(result.toPrecision(10)).toString();
                 } else {
-                    setCurrentValue(result.toString());
+                    finalVal = result.toString();
                 }
+
+                // Add to history
+                const item = `${expression} = ${finalVal}`;
+                setHistory(prev => {
+                    const newHistory = [item, ...prev].slice(0, 10);
+                    saveHistory(newHistory);
+                    return newHistory;
+                });
+
+                setCurrentValue(finalVal);
             } catch (e) {
                 setCurrentValue('Error');
             }
@@ -123,23 +160,59 @@ export default function Calculator() {
             }
             return prev + valToAdd;
         });
-    };
+    }, [navigation, isScientific, showHistory, currentValue, sound]);
 
     return (
         <View style={styles.container}>
             <SafeAreaView style={styles.resultContainer}>
-                <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end' }}
-                >
-                    <Text style={[styles.resultText, currentValue.length > 10 && { fontSize: 40 }]}>
-                        {currentValue}
-                    </Text>
-                </ScrollView>
+                {showHistory ? (
+                    <View style={styles.historyList}>
+                        <Text style={styles.historyTitle}>Recent Calculations</Text>
+                        <ScrollView showsVerticalScrollIndicator={false}>
+                            {history.length === 0 ? (
+                                <Text style={styles.emptyHistory}>No history yet</Text>
+                            ) : (
+                                history.map((item, index) => (
+                                    <TouchableOpacity
+                                        key={index}
+                                        onPress={() => {
+                                            const val = item.split(' = ')[1];
+                                            setCurrentValue(val);
+                                            setShowHistory(false);
+                                        }}
+                                        style={styles.historyItem}
+                                    >
+                                        <Text style={styles.historyText}>{item}</Text>
+                                    </TouchableOpacity>
+                                ))
+                            )}
+                        </ScrollView>
+                    </View>
+                ) : (
+                    <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end' }}
+                    >
+                        <Text style={[styles.resultText, currentValue.length > 10 && { fontSize: 40 }]}>
+                            {currentValue}
+                        </Text>
+                    </ScrollView>
+                )}
             </SafeAreaView>
 
             <View style={styles.keypad}>
+                {!isScientific && (
+                    <View style={[styles.row, { justifyContent: 'flex-end', paddingRight: 15, marginBottom: 0 }]}>
+                        <TouchableOpacity onPress={() => handlePress('Adv')} style={styles.utilBtn}>
+                            <Text style={styles.utilBtnText}>Advance Math</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => handlePress('Hist')} style={styles.utilBtn}>
+                            <Text style={styles.utilBtnText}>History</Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
+
                 {isScientific && (
                     <>
                         <View style={styles.row}>
@@ -242,5 +315,47 @@ const styles = StyleSheet.create({
     },
     sciText: {
         fontSize: 15,
+    },
+    // History & Utils
+    utilBtn: {
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        backgroundColor: Colors.secondary,
+        borderRadius: 15,
+        marginLeft: 8,
+        borderWidth: 1,
+        borderColor: Colors.gray,
+    },
+    utilBtnText: {
+        color: Colors.accent,
+        fontSize: 12,
+        fontWeight: 'bold',
+    },
+    historyList: {
+        flex: 1,
+        width: '100%',
+        paddingTop: 10,
+    },
+    historyTitle: {
+        color: Colors.accent,
+        fontSize: 14,
+        fontWeight: 'bold',
+        marginBottom: 10,
+        textTransform: 'uppercase',
+    },
+    historyItem: {
+        paddingVertical: 8,
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(255,255,255,0.05)',
+    },
+    historyText: {
+        color: Colors.textPrimary,
+        fontSize: 18,
+        textAlign: 'right',
+    },
+    emptyHistory: {
+        color: Colors.textSecondary,
+        textAlign: 'center',
+        marginTop: 20,
     }
 });

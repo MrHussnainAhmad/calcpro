@@ -13,7 +13,7 @@ interface CalculatorButtonProps {
     textStyle?: TextStyle;
 }
 
-export default function CalculatorButton({ onPress, text, size = 'single', theme = 'primary', style, textStyle }: CalculatorButtonProps) {
+const CalculatorButton = React.memo(({ onPress, text, size = 'single', theme = 'primary', style, textStyle }: CalculatorButtonProps) => {
     const buttonStyles: ViewStyle[] = [styles.button];
     const textStyles: TextStyle[] = [styles.text];
 
@@ -51,7 +51,9 @@ export default function CalculatorButton({ onPress, text, size = 'single', theme
             </Text>
         </TouchableOpacity>
     );
-}
+});
+
+export default CalculatorButton;
 
 const styles = StyleSheet.create({
     button: {
@@ -83,6 +85,6 @@ const styles = StyleSheet.create({
         backgroundColor: 'transparent', // Ensure no hidden box issues
     },
     textSecondary: {
-        color: Colors.textSecondary,
+        color: Colors.black,
     },
 });

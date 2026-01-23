@@ -6,6 +6,12 @@ import Calculator from './components/Calculator';
 import FormulaScreen from './screens/FormulaScreen';
 import CalculusScreen from './screens/CalculusScreen';
 import MatrixScreen from './screens/MatrixScreen';
+import GraphScreen from './screens/GraphScreen';
+import AdvancedMenuScreen from './screens/AdvancedMenuScreen';
+import AdvancedMathScreen from './screens/AdvancedMathScreen';
+import ConstantsScreen from './screens/ConstantsScreen';
+import UnitConverterScreen from './screens/UnitConverterScreen';
+import ScratchpadScreen from './screens/ScratchpadScreen';
 import { Colors } from './constants/Colors';
 
 const Stack = createNativeStackNavigator();
@@ -19,6 +25,12 @@ export default function App() {
         <Stack.Screen name="Formula" component={FormulaScreen} />
         <Stack.Screen name="Calculus" component={CalculusScreen} />
         <Stack.Screen name="Matrix" component={MatrixScreen} />
+        <Stack.Screen name="Graph" component={GraphScreen} />
+        <Stack.Screen name="AdvancedMenu" component={AdvancedMenuScreen} />
+        <Stack.Screen name="AdvancedMath" component={AdvancedMathScreen} />
+        <Stack.Screen name="Constants" component={ConstantsScreen} />
+        <Stack.Screen name="UnitConverter" component={UnitConverterScreen} />
+        <Stack.Screen name="Scratchpad" component={ScratchpadScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

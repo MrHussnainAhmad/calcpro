@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, memo } from 'react';
+import React, { useState, useMemo, useCallback, memo, useEffect } from 'react';
 import {
     StyleSheet,
     Text,
@@ -17,12 +17,13 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '../constants/Colors';
 // @ts-ignore
-import { formulas } from '../assets/data';
-import { evaluate } from 'mathjs';
+import formulas from '../assets/formulas.json';
+import { evaluate } from '../lib/math';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -193,7 +194,15 @@ const CategoryChip = memo(({
 ));
 
 // Formula Card Component
-const FormulaItem = memo(({ item }: { item: FormulaData }) => {
+const FormulaItem = memo(({
+    item,
+    isFavorite,
+    toggleFavorite
+}: {
+    item: FormulaData;
+    isFavorite: boolean;
+    toggleFavorite: (id: string) => void;
+}) => {
     const [inputs, setInputs] = useState<Record<string, string>>({});
     const [result, setResult] = useState<string | null>(null);
     const [expanded, setExpanded] = useState(false);
@@ -273,12 +282,24 @@ const FormulaItem = memo(({ item }: { item: FormulaData }) => {
                         <Text style={styles.cardFormula} numberOfLines={1}>{item.expression}</Text>
                     </View>
                 </View>
-                <View style={[styles.expandButton, expanded && styles.expandButtonActive]}>
-                    <Ionicons
-                        name={expanded ? "remove" : "add"}
-                        size={16}
-                        color={expanded ? COLORS.text : COLORS.accent}
-                    />
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <TouchableOpacity
+                        onPress={() => toggleFavorite(item.id)}
+                        style={styles.heartButton}
+                    >
+                        <Ionicons
+                            name={isFavorite ? "heart" : "heart-outline"}
+                            size={20}
+                            color={isFavorite ? COLORS.red : COLORS.gray1}
+                        />
+                    </TouchableOpacity>
+                    <View style={[styles.expandButton, expanded && styles.expandButtonActive]}>
+                        <Ionicons
+                            name={expanded ? "remove" : "add"}
+                            size={16}
+                            color={expanded ? COLORS.text : COLORS.accent}
+                        />
+                    </View>
                 </View>
             </TouchableOpacity>
 
@@ -380,11 +401,37 @@ const EmptyState = memo(() => (
 export default function FormulaScreen({ navigation }: any) {
     const insets = useSafeAreaInsets();
     const [searchQuery, setSearchQuery] = useState('');
+    const [debouncedQuery, setDebouncedQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('All');
+    const [favorites, setFavorites] = useState<string[]>([]);
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedQuery(searchQuery);
+        }, 150);
+        return () => clearTimeout(handler);
+    }, [searchQuery]);
+
+    useEffect(() => {
+        const loadFavs = async () => {
+            const saved = await AsyncStorage.getItem('formula_favs');
+            if (saved) setFavorites(JSON.parse(saved));
+        };
+        loadFavs();
+    }, []);
+
+    const toggleFavorite = useCallback(async (id: string) => {
+        setFavorites(prev => {
+            const next = prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id];
+            AsyncStorage.setItem('formula_favs', JSON.stringify(next));
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            return next;
+        });
+    }, []);
 
     const allCategories = useMemo(() => {
         const cats = new Set(formulas.map((f: FormulaData) => f.category));
-        return ['All', ...Array.from(cats)] as string[];
+        return ['All', 'Favs', ...Array.from(cats)] as string[];
     }, []);
 
     const getDisplayCategory = useCallback((category: string): string => {
@@ -396,11 +443,13 @@ export default function FormulaScreen({ navigation }: any) {
     const filteredSections = useMemo(() => {
         let data: FormulaData[] = formulas;
 
-        if (selectedCategory !== 'All') {
+        if (selectedCategory === 'Favs') {
+            data = data.filter(item => favorites.includes(item.id));
+        } else if (selectedCategory !== 'All') {
             data = data.filter(item => item.category === selectedCategory);
         }
 
-        const query = searchQuery.toLowerCase().trim();
+        const query = debouncedQuery.toLowerCase().trim();
         if (query) {
             data = data.filter(item =>
                 item.title.toLowerCase().includes(query) ||
@@ -414,11 +463,15 @@ export default function FormulaScreen({ navigation }: any) {
         }, {} as Record<string, FormulaData[]>);
 
         return Object.entries(groups).map(([title, items]) => ({ title, data: items }));
-    }, [searchQuery, selectedCategory]);
+    }, [debouncedQuery, selectedCategory]);
 
     const renderItem = useCallback(({ item }: { item: FormulaData }) => (
-        <FormulaItem item={item} />
-    ), []);
+        <FormulaItem
+            item={item}
+            isFavorite={favorites.includes(item.id)}
+            toggleFavorite={toggleFavorite}
+        />
+    ), [favorites, toggleFavorite]);
 
     const renderSectionHeader = useCallback(({ section }: { section: { title: string } }) => (
         <View style={styles.sectionHeader}>
@@ -549,6 +602,10 @@ export default function FormulaScreen({ navigation }: any) {
                     ListEmptyComponent={EmptyState}
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
+                    initialNumToRender={5}
+                    maxToRenderPerBatch={10}
+                    windowSize={5}
+                    removeClippedSubviews={Platform.OS === 'android'}
                 />
             </KeyboardAvoidingView>
         </View>
@@ -758,6 +815,13 @@ const styles = StyleSheet.create({
     },
     expandButtonActive: {
         backgroundColor: COLORS.accent,
+    },
+    heartButton: {
+        width: 32,
+        height: 32,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 8,
     },
 
     // Card Body
