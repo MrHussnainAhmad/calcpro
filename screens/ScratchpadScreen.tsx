@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, Platform, KeyboardAvoidingView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Colors } from '../constants/Colors';
 import { useNavigation } from '@react-navigation/native';
 import { evaluate } from '../lib/math';
+import { useTheme } from '../context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
@@ -14,6 +14,7 @@ interface LineResult {
 }
 
 export default function ScratchpadScreen() {
+    const { theme } = useTheme();
     const navigation = useNavigation();
     const [text, setText] = useState('');
     const [results, setResults] = useState<LineResult[]>([]);
@@ -49,48 +50,74 @@ export default function ScratchpadScreen() {
         setResults(newResults);
     }, [text]);
 
+    const [selection, setSelection] = useState({ start: 0, end: 0 });
+    const inputRef = React.useRef<TextInput>(null);
+
+    const SYMBOLS = ['α', 'β', 'γ', 'Δ', 'θ', 'π', 'μ', 'σ', '∂', '∫', '∑', '√', '∞', '^', '(', ')', '[', ']', '{', '}'];
+
+    const insertSymbol = (sym: string) => {
+        const newText = text.slice(0, selection.start) + sym + text.slice(selection.end);
+        setText(newText);
+        // Nudge cursor forward
+        const newPos = selection.start + sym.length;
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    };
+
     const clearPad = () => {
         setText('');
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.dark }]}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <Ionicons name="chevron-back" size={24} color={Colors.accent} />
+                    <Ionicons name="chevron-back" size={24} color={theme.accent} />
                 </TouchableOpacity>
-                <Text style={styles.title}>Math Scratchpad</Text>
+                <Text style={[styles.title, { color: theme.textPrimary }]}>Math Scratchpad</Text>
                 <TouchableOpacity onPress={clearPad} style={styles.clearBtn}>
                     <Text style={styles.clearBtnText}>Clear</Text>
                 </TouchableOpacity>
+            </View>
+
+            <View style={[styles.symbolBar, { backgroundColor: theme.secondary }]}>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.symbolScroll}>
+                    {SYMBOLS.map(sym => (
+                        <TouchableOpacity key={sym} style={styles.symbolBtn} onPress={() => insertSymbol(sym)}>
+                            <Text style={[styles.symbolBtnText, { color: theme.textPrimary }]}>{sym}</Text>
+                        </TouchableOpacity>
+                    ))}
+                </ScrollView>
             </View>
 
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={styles.flex}
             >
-                <View style={styles.padArea}>
+                <View style={[styles.padArea, { backgroundColor: theme.dark === '#000000' ? '#0A0A0A' : theme.dark, borderColor: theme.gray }]}>
                     <View style={styles.inputContainer}>
                         <TextInput
-                            style={styles.input}
+                            ref={inputRef}
+                            style={[styles.input, { color: theme.textPrimary }]}
                             multiline
                             value={text}
                             onChangeText={setText}
+                            onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
                             placeholder="Start drafting... (e.g. x = 5)"
-                            placeholderTextColor={Colors.gray}
+                            placeholderTextColor={theme.textSecondary}
                             autoCapitalize="none"
                             autoCorrect={false}
                             spellCheck={false}
                         />
                     </View>
-                    <View style={styles.resultContainer}>
+                    <View style={[styles.resultContainer, { backgroundColor: 'rgba(255,255,255,0.02)', borderLeftColor: theme.gray }]}>
                         <ScrollView showsVerticalScrollIndicator={false}>
                             {results.map((res, i) => (
                                 <View key={i} style={styles.resultLine}>
                                     <Text
                                         style={[
                                             styles.resultText,
+                                            { color: theme.accent },
                                             res.isError && { color: '#FF453A' },
                                             !res.result && { opacity: 0 }
                                         ]}
@@ -103,8 +130,8 @@ export default function ScratchpadScreen() {
                     </View>
                 </View>
 
-                <View style={styles.tips}>
-                    <Text style={styles.tipsText}> Sequential lines share variables: `x = 10` then `x * 2` → `20`</Text>
+                <View style={[styles.tips, { backgroundColor: theme.secondary }]}>
+                    <Text style={[styles.tipsText, { color: theme.textSecondary }]}> Sequential lines share variables: `x = 10` then `x * 2` → `20`</Text>
                 </View>
             </KeyboardAvoidingView>
         </SafeAreaView>
@@ -114,7 +141,6 @@ export default function ScratchpadScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.dark,
     },
     flex: {
         flex: 1,
@@ -143,6 +169,26 @@ const styles = StyleSheet.create({
         color: '#FF453A',
         fontWeight: 'bold',
         fontSize: 12,
+    },
+    symbolBar: {
+        borderBottomWidth: 1,
+    },
+    symbolScroll: {
+        paddingHorizontal: 15,
+        paddingVertical: 10,
+    },
+    symbolBtn: {
+        width: 36,
+        height: 36,
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        borderRadius: 8,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 8,
+    },
+    symbolBtnText: {
+        color: 'white',
+        fontSize: 18,
     },
     padArea: {
         flex: 1,
@@ -179,7 +225,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
     },
     resultText: {
-        color: Colors.accent,
         fontSize: 14,
         fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
         textAlign: 'right',
@@ -187,12 +232,10 @@ const styles = StyleSheet.create({
     },
     tips: {
         padding: 15,
-        backgroundColor: Colors.secondary,
         margin: 10,
         borderRadius: 10,
     },
     tipsText: {
-        color: Colors.textSecondary,
         fontSize: 12,
         fontStyle: 'italic',
     }

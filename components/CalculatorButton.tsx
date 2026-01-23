@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, Dimensions, ViewStyle, TextStyle } from 'react-native';
-import { Colors } from '../constants/Colors';
+import { useTheme } from '../context/ThemeContext';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -13,9 +13,10 @@ interface CalculatorButtonProps {
     textStyle?: TextStyle;
 }
 
-const CalculatorButton = React.memo(({ onPress, text, size = 'single', theme = 'primary', style, textStyle }: CalculatorButtonProps) => {
-    const buttonStyles: ViewStyle[] = [styles.button];
-    const textStyles: TextStyle[] = [styles.text];
+const CalculatorButton = React.memo(({ onPress, text, size = 'single', theme: themeProp = 'primary', style, textStyle }: CalculatorButtonProps) => {
+    const { theme } = useTheme();
+    const buttonStyles: ViewStyle[] = [styles.button, { backgroundColor: theme.gray }];
+    const textStyles: TextStyle[] = [styles.text, { color: theme.textPrimary }];
 
     const handlePress = () => {
         onPress(text);
@@ -25,11 +26,11 @@ const CalculatorButton = React.memo(({ onPress, text, size = 'single', theme = '
         buttonStyles.push(styles.buttonDouble);
     }
 
-    if (theme === 'secondary') {
-        buttonStyles.push(styles.buttonSecondary);
-        textStyles.push(styles.textSecondary);
-    } else if (theme === 'accent') {
-        buttonStyles.push(styles.buttonAccent);
+    if (themeProp === 'secondary') {
+        buttonStyles.push({ backgroundColor: theme.lightGray });
+        textStyles.push({ color: theme.black });
+    } else if (themeProp === 'accent') {
+        buttonStyles.push({ backgroundColor: theme.accent });
     }
 
     if (style) {
@@ -42,7 +43,7 @@ const CalculatorButton = React.memo(({ onPress, text, size = 'single', theme = '
                 style={[
                     textStyles,
                     text.length > 2 && { fontSize: 18 },
-                    text === '.' && { fontSize: 40, marginTop: -10 }, // Nudge dot up
+                    text === '.' && { fontSize: 40, marginTop: -10 },
                     textStyle
                 ]}
                 numberOfLines={1}
@@ -57,13 +58,12 @@ export default CalculatorButton;
 
 const styles = StyleSheet.create({
     button: {
-        backgroundColor: Colors.gray,
         flex: 1,
         aspectRatio: 1,
         alignItems: 'center',
         justifyContent: 'center',
         borderRadius: 100,
-        margin: 10, // Increased margin for smaller buttons
+        margin: 10,
     },
     buttonDouble: {
         flex: 2,
@@ -71,20 +71,10 @@ const styles = StyleSheet.create({
         alignItems: 'flex-start',
         paddingLeft: 30,
     },
-    buttonSecondary: {
-        backgroundColor: Colors.lightGray,
-    },
-    buttonAccent: {
-        backgroundColor: Colors.accent,
-    },
     text: {
-        color: Colors.textPrimary,
         fontSize: 30,
         fontWeight: '500',
-        includeFontPadding: false, // Critical for Android vertical centering
-        backgroundColor: 'transparent', // Ensure no hidden box issues
-    },
-    textSecondary: {
-        color: Colors.black,
+        includeFontPadding: false,
+        backgroundColor: 'transparent',
     },
 });

@@ -15,7 +15,6 @@ import {
     StatusBar
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Colors } from '../constants/Colors';
 // @ts-ignore
 import formulas from '../assets/formulas.json';
 import { evaluate } from '../lib/math';
@@ -24,6 +23,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '../context/ThemeContext';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -31,27 +31,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
     UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-// Premium Color Palette
-const COLORS = {
-    bg: '#000000',
-    card: '#1c1c1e',
-    cardBorder: 'rgba(255,255,255,0.08)',
-    accent: '#0a84ff',
-    accentGradient: ['#0a84ff', '#0066cc'],
-    orange: '#ff9f0a',
-    orangeGradient: ['#ff9f0a', '#ff7b00'],
-    green: '#30d158',
-    greenGradient: ['#30d158', '#28a745'],
-    red: '#ff453a',
-    gray1: '#8e8e93',
-    gray2: '#636366',
-    gray3: '#48484a',
-    gray4: '#3a3a3c',
-    gray5: '#2c2c2e',
-    gray6: '#1c1c1e',
-    text: '#ffffff',
-    textSecondary: '#8e8e93',
-};
+// Premium Color Palette removed in favor of dynamic theme.
 
 interface InputDef {
     key: string;
@@ -69,7 +49,6 @@ interface FormulaData {
     output?: { label?: string; unit?: string };
 }
 
-// Calculator-style Button Component
 const CalcButton = memo(({
     onPress,
     label,
@@ -83,16 +62,18 @@ const CalcButton = memo(({
     icon?: string;
     flex?: number;
 }) => {
+    const { theme } = useTheme();
     const getGradient = () => {
         switch (variant) {
-            case 'accent': return COLORS.accentGradient;
-            case 'orange': return COLORS.orangeGradient;
-            case 'secondary': return [COLORS.gray4, COLORS.gray5];
-            default: return [COLORS.gray5, COLORS.gray6];
+            case 'accent': return [theme.accent, theme.accent + '99'];
+            case 'orange': return ['#ff9f0a', '#ff7b00'];
+            case 'secondary': return [theme.gray, theme.gray];
+            default: return [theme.secondary, theme.secondary];
         }
     };
 
-    const textColor = variant === 'orange' || variant === 'accent' ? '#fff' : COLORS.text;
+    const textColor = variant === 'orange' || variant === 'accent' ? '#fff' : theme.textPrimary;
+
 
     return (
         <TouchableOpacity
@@ -132,32 +113,37 @@ const PremiumInput = memo(({
     value: string;
     onChangeText: (text: string) => void;
     placeholder: string;
-}) => (
-    <View style={styles.premiumInputContainer}>
-        <View style={styles.premiumInputHeader}>
-            <Text style={styles.premiumInputLabel}>{label}</Text>
-            <View style={styles.unitBadge}>
-                <Text style={styles.unitBadgeText}>{unit}</Text>
+}) => {
+    const { theme } = useTheme();
+    return (
+        <View style={styles.premiumInputContainer}>
+            <View style={styles.premiumInputHeader}>
+                <Text style={[styles.premiumInputLabel, { color: theme.textSecondary }]}>{label}</Text>
+                <View style={[styles.unitBadge, { backgroundColor: theme.gray }]}>
+                    <Text style={[styles.unitBadgeText, { color: theme.textPrimary }]}>{unit}</Text>
+                </View>
+            </View>
+
+            <View style={styles.premiumInputWrapper}>
+                <TextInput
+                    style={[styles.premiumInput, { color: theme.textPrimary }]}
+                    keyboardType="decimal-pad"
+                    placeholder={placeholder}
+                    placeholderTextColor={theme.textSecondary}
+
+                    value={value}
+                    onChangeText={onChangeText}
+                    // Disable history/autofill
+                    autoComplete="off"
+                    autoCorrect={false}
+                    textContentType="none"
+                    importantForAutofill="no"
+                    dataDetectorTypes="none"
+                />
             </View>
         </View>
-        <View style={styles.premiumInputWrapper}>
-            <TextInput
-                style={styles.premiumInput}
-                keyboardType="decimal-pad"
-                placeholder={placeholder}
-                placeholderTextColor={COLORS.gray2}
-                value={value}
-                onChangeText={onChangeText}
-                // Disable history/autofill
-                autoComplete="off"
-                autoCorrect={false}
-                textContentType="none"
-                importantForAutofill="no"
-                dataDetectorTypes="none"
-            />
-        </View>
-    </View>
-));
+    );
+});
 
 // Category Chip - FIXED
 const CategoryChip = memo(({
@@ -170,28 +156,31 @@ const CategoryChip = memo(({
     isActive: boolean;
     onPress: () => void;
     isLast?: boolean;
-}) => (
-    <TouchableOpacity
-        onPress={onPress}
-        activeOpacity={0.7}
-        style={[styles.chipWrapper, !isLast && styles.chipMargin]}
-    >
-        {isActive ? (
-            <LinearGradient
-                colors={COLORS.accentGradient as [string, string]}
-                style={styles.chipGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-            >
-                <Text style={styles.chipTextActive}>{label}</Text>
-            </LinearGradient>
-        ) : (
-            <View style={styles.chip}>
-                <Text style={styles.chipText}>{label}</Text>
-            </View>
-        )}
-    </TouchableOpacity>
-));
+}) => {
+    const { theme } = useTheme();
+    return (
+        <TouchableOpacity
+            onPress={onPress}
+            activeOpacity={0.7}
+            style={[styles.chipWrapper, !isLast && styles.chipMargin]}
+        >
+            {isActive ? (
+                <LinearGradient
+                    colors={[theme.accent, theme.accent + '99']}
+                    style={styles.chipGradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                >
+                    <Text style={styles.chipTextActive}>{label}</Text>
+                </LinearGradient>
+            ) : (
+                <View style={[styles.chip, { backgroundColor: theme.secondary }]}>
+                    <Text style={[styles.chipText, { color: theme.textSecondary }]}>{label}</Text>
+                </View>
+            )}
+        </TouchableOpacity>
+    )
+});
 
 // Formula Card Component
 const FormulaItem = memo(({
@@ -255,10 +244,12 @@ const FormulaItem = memo(({
         setResult(null);
     }, []);
 
+    const { theme } = useTheme();
     const isError = result === 'Error' || result === 'Invalid Input';
 
     return (
-        <View style={styles.card}>
+        <View style={[styles.card, { backgroundColor: theme.secondary, borderColor: theme.gray }]}>
+
             {/* Card Header */}
             <TouchableOpacity
                 onPress={toggleExpand}
@@ -269,17 +260,17 @@ const FormulaItem = memo(({
             >
 
                 <View style={styles.cardHeaderLeft}>
-                    <View style={styles.cardIcon}>
-                        <Ionicons name="calculator" size={16} color={COLORS.orange} />
+                    <View style={[styles.cardIcon, { backgroundColor: theme.gray }]}>
+                        <Ionicons name="calculator" size={16} color={theme.accent} />
                     </View>
                     <View style={styles.cardHeaderText}>
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
+                            <Text style={[styles.cardTitle, { color: theme.textPrimary }]} numberOfLines={1}>{item.title}</Text>
                             {copyStatus === 'Formula' && (
-                                <Text style={{ marginLeft: 8, color: COLORS.green, fontSize: 10, fontWeight: 'bold' }}>Copied!</Text>
+                                <Text style={{ marginLeft: 8, color: '#30d158', fontSize: 10, fontWeight: 'bold' }}>Copied!</Text>
                             )}
                         </View>
-                        <Text style={styles.cardFormula} numberOfLines={1}>{item.expression}</Text>
+                        <Text style={[styles.cardFormula, { color: theme.textSecondary }]} numberOfLines={1}>{item.expression}</Text>
                     </View>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -290,14 +281,14 @@ const FormulaItem = memo(({
                         <Ionicons
                             name={isFavorite ? "heart" : "heart-outline"}
                             size={20}
-                            color={isFavorite ? COLORS.red : COLORS.gray1}
+                            color={isFavorite ? '#ff453a' : theme.textSecondary}
                         />
                     </TouchableOpacity>
-                    <View style={[styles.expandButton, expanded && styles.expandButtonActive]}>
+                    <View style={[styles.expandButton, { backgroundColor: expanded ? theme.accent : theme.gray }]}>
                         <Ionicons
                             name={expanded ? "remove" : "add"}
                             size={16}
-                            color={expanded ? COLORS.text : COLORS.accent}
+                            color={expanded ? '#fff' : theme.accent}
                         />
                     </View>
                 </View>
@@ -308,8 +299,8 @@ const FormulaItem = memo(({
                 <View style={styles.cardBody}>
                     {/* Description */}
                     <View style={styles.descriptionBox}>
-                        <Ionicons name="information-circle" size={14} color={COLORS.accent} />
-                        <Text style={styles.description}>{item.description}</Text>
+                        <Ionicons name="information-circle" size={14} color={theme.accent} />
+                        <Text style={[styles.description, { color: theme.textSecondary }]}>{item.description}</Text>
                     </View>
 
                     {/* Input Fields */}
@@ -362,18 +353,18 @@ const FormulaItem = memo(({
                                 ]}
                             >
                                 <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
-                                    <Text style={styles.resultLabel}>
+                                    <Text style={[styles.resultLabel, { color: theme.textSecondary }]}>
                                         {item.output?.label || 'Result'}
                                     </Text>
                                     {copyStatus === 'Result' && (
-                                        <Text style={{ marginLeft: 8, color: COLORS.green, fontSize: 11, fontWeight: '600' }}>
+                                        <Text style={{ marginLeft: 8, color: '#30d158', fontSize: 11, fontWeight: '600' }}>
                                             Copied!
                                         </Text>
                                     )}
                                 </View>
                                 <Text style={[
                                     styles.resultValue,
-                                    isError && styles.resultValueError
+                                    { color: isError ? '#ff453a' : '#30d158' }
                                 ]}>
                                     {result}
                                 </Text>
@@ -387,38 +378,44 @@ const FormulaItem = memo(({
 });
 
 // Empty State
-const EmptyState = memo(() => (
-    <View style={styles.emptyContainer}>
-        <View style={styles.emptyIconContainer}>
-            <Ionicons name="search-outline" size={40} color={COLORS.gray2} />
+const EmptyState = memo(() => {
+    const { theme } = useTheme();
+    return (
+        <View style={styles.emptyContainer}>
+            <View style={[styles.emptyIconContainer, { backgroundColor: theme.secondary }]}>
+                <Ionicons name="search-outline" size={40} color={theme.textSecondary} />
+            </View>
+            <Text style={[styles.emptyTitle, { color: theme.textPrimary }]}>No formulas found</Text>
+            <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>Try adjusting your search or filters</Text>
         </View>
-        <Text style={styles.emptyTitle}>No formulas found</Text>
-        <Text style={styles.emptySubtitle}>Try adjusting your search or filters</Text>
-    </View>
-));
+    );
+});
 
 // Main Screen
 export default function FormulaScreen({ navigation }: any) {
+    const { theme } = useTheme();
     const insets = useSafeAreaInsets();
     const [searchQuery, setSearchQuery] = useState('');
     const [debouncedQuery, setDebouncedQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [favorites, setFavorites] = useState<string[]>([]);
+    const [customFormulas, setCustomFormulas] = useState<FormulaData[]>([]);
 
-    useEffect(() => {
-        const handler = setTimeout(() => {
-            setDebouncedQuery(searchQuery);
-        }, 150);
-        return () => clearTimeout(handler);
-    }, [searchQuery]);
-
-    useEffect(() => {
-        const loadFavs = async () => {
-            const saved = await AsyncStorage.getItem('formula_favs');
-            if (saved) setFavorites(JSON.parse(saved));
-        };
-        loadFavs();
+    const loadData = useCallback(async () => {
+        const [favs, custom] = await Promise.all([
+            AsyncStorage.getItem('formula_favs'),
+            AsyncStorage.getItem('custom_formulas')
+        ]);
+        if (favs) setFavorites(JSON.parse(favs));
+        if (custom) setCustomFormulas(JSON.parse(custom));
     }, []);
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('focus', loadData);
+        return unsubscribe;
+    }, [navigation, loadData]);
+
+    const allFormulas = useMemo(() => [...formulas, ...customFormulas], [customFormulas]);
 
     const toggleFavorite = useCallback(async (id: string) => {
         setFavorites(prev => {
@@ -430,9 +427,9 @@ export default function FormulaScreen({ navigation }: any) {
     }, []);
 
     const allCategories = useMemo(() => {
-        const cats = new Set(formulas.map((f: FormulaData) => f.category));
+        const cats = new Set(allFormulas.map((f: FormulaData) => f.category));
         return ['All', 'Favs', ...Array.from(cats)] as string[];
-    }, []);
+    }, [allFormulas]);
 
     const getDisplayCategory = useCallback((category: string): string => {
         if (category === 'All') return 'All';
@@ -441,7 +438,7 @@ export default function FormulaScreen({ navigation }: any) {
     }, []);
 
     const filteredSections = useMemo(() => {
-        let data: FormulaData[] = formulas;
+        let data: FormulaData[] = allFormulas;
 
         if (selectedCategory === 'Favs') {
             data = data.filter(item => favorites.includes(item.id));
@@ -453,7 +450,8 @@ export default function FormulaScreen({ navigation }: any) {
         if (query) {
             data = data.filter(item =>
                 item.title.toLowerCase().includes(query) ||
-                item.description.toLowerCase().includes(query)
+                item.description.toLowerCase().includes(query) ||
+                item.category.toLowerCase().includes(query)
             );
         }
 
@@ -463,7 +461,7 @@ export default function FormulaScreen({ navigation }: any) {
         }, {} as Record<string, FormulaData[]>);
 
         return Object.entries(groups).map(([title, items]) => ({ title, data: items }));
-    }, [debouncedQuery, selectedCategory]);
+    }, [allFormulas, debouncedQuery, selectedCategory, favorites]);
 
     const renderItem = useCallback(({ item }: { item: FormulaData }) => (
         <FormulaItem
@@ -481,7 +479,7 @@ export default function FormulaScreen({ navigation }: any) {
     ), []);
 
     return (
-        <View style={[styles.container, { paddingTop: insets.top }]}>
+        <View style={[styles.container, { backgroundColor: theme.dark, paddingTop: insets.top }]}>
             <StatusBar barStyle="light-content" />
 
             {/* Premium Header */}
@@ -491,112 +489,118 @@ export default function FormulaScreen({ navigation }: any) {
                     style={styles.backButton}
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
-                    <View style={styles.backButtonInner}>
-                        <Ionicons name="chevron-back" size={20} color={COLORS.accent} />
+                    <View style={[styles.backButtonInner, { backgroundColor: theme.secondary }]}>
+                        <Ionicons name="chevron-back" size={20} color={theme.accent} />
                     </View>
                 </TouchableOpacity>
 
                 <View style={styles.headerCenter}>
-                    <Text style={styles.headerTitle}>Formulas</Text>
-                    <Text style={styles.headerSubtitle}>{formulas.length} available</Text>
+                    <Text style={[styles.headerTitle, { color: theme.textPrimary }]}>Formulas</Text>
+                    <Text style={[styles.headerSubtitle, { color: theme.textSecondary }]}>{allFormulas.length} available</Text>
                 </View>
 
-                <View style={styles.headerRight}>
-                    <View style={styles.headerIcon}>
-                        <Ionicons name="flask" size={18} color={COLORS.orange} />
+                <TouchableOpacity
+                    style={styles.headerRight}
+                    onPress={() => navigation.navigate('AddFormula' as any)}
+                >
+                    <View style={[styles.headerIcon, { backgroundColor: theme.secondary }]}>
+                        <Ionicons name="add" size={24} color={theme.accent} />
                     </View>
-                </View>
+                </TouchableOpacity>
             </View>
 
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                 style={styles.flex}
             >
-                {/* Search Bar */}
-                <View style={styles.searchSection}>
-                    <View style={styles.searchContainer}>
-                        <Ionicons name="search" size={16} color={COLORS.gray1} />
-                        <TextInput
-                            style={styles.searchInput}
-                            placeholder="Search formulas..."
-                            placeholderTextColor={COLORS.gray2}
-                            value={searchQuery}
-                            onChangeText={setSearchQuery}
-                            clearButtonMode="while-editing"
-                            returnKeyType="search"
-                        />
-                        {searchQuery.length > 0 && Platform.OS === 'android' && (
-                            <TouchableOpacity onPress={() => setSearchQuery('')}>
-                                <Ionicons name="close-circle" size={16} color={COLORS.gray2} />
-                            </TouchableOpacity>
-                        )}
-                    </View>
-                </View>
-
-                {/* Calculus Shortcut */}
-                <View style={styles.calculusPromo}>
-                    <Text style={styles.calculusPromoTitle}>Get calculus answers better here</Text>
-                    <TouchableOpacity
-                        style={styles.calculusButton}
-                        activeOpacity={0.8}
-                        onPress={() => navigation.navigate('Calculus')}
-                    >
-                        <LinearGradient
-                            colors={COLORS.orangeGradient as [string, string]}
-                            style={styles.calculusGradient}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 0 }}
-                        >
-                            <Ionicons name="infinite" size={20} color="#fff" style={{ marginRight: 8 }} />
-                            <Text style={styles.calculusButtonText}>Calculus Solver (Derivatives)</Text>
-                        </LinearGradient>
-                    </TouchableOpacity>
-                </View>
-
-                {/* Linear Algebra Shortcut */}
-                <View style={styles.calculusPromo}>
-                    <Text style={styles.calculusPromoTitle}>Solve Linear Algebra Problems</Text>
-                    <TouchableOpacity
-                        style={[styles.calculusButton, { borderColor: 'rgba(10,132,255,0.3)' }]}
-                        activeOpacity={0.8}
-                        onPress={() => navigation.navigate('Matrix')}
-                    >
-                        <LinearGradient
-                            colors={COLORS.accentGradient as [string, string]}
-                            style={styles.calculusGradient}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 0 }}
-                        >
-                            <Ionicons name="grid" size={20} color="#fff" style={{ marginRight: 8 }} />
-                            <Text style={styles.calculusButtonText}>Matrix Solver (Determinant, Inverse)</Text>
-                        </LinearGradient>
-                    </TouchableOpacity>
-                </View>
-
-                {/* Filter Chips - FIXED */}
-                <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.chipsContainer}
-                    style={styles.chipsScrollView}
-                >
-                    {allCategories.map((category, index) => (
-                        <CategoryChip
-                            key={category}
-                            label={getDisplayCategory(category)}
-                            isActive={selectedCategory === category}
-                            onPress={() => setSelectedCategory(category)}
-                            isLast={index === allCategories.length - 1}
-                        />
-                    ))}
-                </ScrollView>
-
                 {/* Formula List */}
                 <SectionList
                     sections={filteredSections}
                     keyExtractor={item => item.id}
                     renderItem={renderItem}
                     renderSectionHeader={renderSectionHeader}
+                    ListHeaderComponent={
+                        <>
+                            {/* Search Bar */}
+                            <View style={styles.searchSection}>
+                                <View style={[styles.searchContainer, { backgroundColor: theme.secondary, borderColor: theme.gray }]}>
+                                    <Ionicons name="search" size={16} color={theme.textSecondary} />
+                                    <TextInput
+                                        style={[styles.searchInput, { color: theme.textPrimary }]}
+                                        placeholder="Search formulas..."
+                                        placeholderTextColor={theme.textSecondary}
+                                        value={searchQuery}
+                                        onChangeText={setSearchQuery}
+                                        clearButtonMode="while-editing"
+                                        returnKeyType="search"
+                                    />
+                                    {searchQuery.length > 0 && Platform.OS === 'android' && (
+                                        <TouchableOpacity onPress={() => setSearchQuery('')}>
+                                            <Ionicons name="close-circle" size={16} color={theme.textSecondary} />
+                                        </TouchableOpacity>
+                                    )}
+                                </View>
+                            </View>
+
+                            {/* Calculus Shortcut */}
+                            <View style={styles.calculusPromo}>
+                                <Text style={[styles.calculusPromoTitle, { color: theme.textSecondary }]}>Get calculus answers better here</Text>
+                                <TouchableOpacity
+                                    style={styles.calculusButton}
+                                    activeOpacity={0.8}
+                                    onPress={() => navigation.navigate('Calculus')}
+                                >
+                                    <LinearGradient
+                                        colors={['#ff9f0a', '#ff7b00']}
+                                        style={styles.calculusGradient}
+                                        start={{ x: 0, y: 0 }}
+                                        end={{ x: 1, y: 0 }}
+                                    >
+                                        <Ionicons name="infinite" size={20} color="#fff" style={{ marginRight: 8 }} />
+                                        <Text style={styles.calculusButtonText}>Calculus Solver (Derivatives)</Text>
+                                    </LinearGradient>
+                                </TouchableOpacity>
+                            </View>
+
+                            {/* Linear Algebra Shortcut */}
+                            <View style={styles.calculusPromo}>
+                                <Text style={[styles.calculusPromoTitle, { color: theme.textSecondary }]}>Solve Linear Algebra Problems</Text>
+                                <TouchableOpacity
+                                    style={[styles.calculusButton, { borderColor: theme.accent + '33' }]}
+                                    activeOpacity={0.8}
+                                    onPress={() => navigation.navigate('Matrix')}
+                                >
+                                    <LinearGradient
+                                        colors={[theme.accent, theme.accent + '99']}
+                                        style={styles.calculusGradient}
+                                        start={{ x: 0, y: 0 }}
+                                        end={{ x: 1, y: 0 }}
+                                    >
+                                        <Ionicons name="grid" size={20} color="#fff" style={{ marginRight: 8 }} />
+                                        <Text style={styles.calculusButtonText}>Matrix Solver (Determinant, Inverse)</Text>
+                                    </LinearGradient>
+                                </TouchableOpacity>
+                            </View>
+
+                            {/* Filter Chips - FIXED */}
+                            <ScrollView
+                                horizontal
+                                showsHorizontalScrollIndicator={false}
+                                contentContainerStyle={styles.chipsContainer}
+                                style={styles.chipsScrollView}
+                            >
+                                {allCategories.map((category, index) => (
+                                    <CategoryChip
+                                        key={category}
+                                        label={getDisplayCategory(category)}
+                                        isActive={selectedCategory === category}
+                                        onPress={() => setSelectedCategory(category)}
+                                        isLast={index === allCategories.length - 1}
+                                    />
+                                ))}
+                            </ScrollView>
+                        </>
+                    }
                     contentContainerStyle={styles.listContent}
                     stickySectionHeadersEnabled={false}
                     ListEmptyComponent={EmptyState}
@@ -619,7 +623,6 @@ const styles = StyleSheet.create({
 
     container: {
         flex: 1,
-        backgroundColor: COLORS.bg,
     },
 
     // Header
@@ -637,7 +640,6 @@ const styles = StyleSheet.create({
         width: 32,
         height: 32,
         borderRadius: 16,
-        backgroundColor: COLORS.gray5,
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -645,12 +647,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     headerTitle: {
-        color: COLORS.text,
         fontSize: 17,
         fontWeight: '600',
     },
     headerSubtitle: {
-        color: COLORS.gray1,
         fontSize: 11,
         marginTop: 2,
     },
@@ -662,7 +662,6 @@ const styles = StyleSheet.create({
         width: 32,
         height: 32,
         borderRadius: 16,
-        backgroundColor: 'rgba(255,159,10,0.15)',
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -671,21 +670,19 @@ const styles = StyleSheet.create({
     searchSection: {
         paddingHorizontal: 16,
         paddingTop: 8,
-        paddingBottom: 12,
+        paddingBottom: 10,
     },
     searchContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: COLORS.gray6,
         paddingHorizontal: 12,
         borderRadius: 12,
         height: 40,
         borderWidth: 1,
-        borderColor: COLORS.cardBorder,
+        borderColor: 'rgba(255,255,255,0.08)',
     },
     searchInput: {
         flex: 1,
-        color: COLORS.text,
         fontSize: 15,
         marginLeft: 8,
     },
@@ -694,11 +691,12 @@ const styles = StyleSheet.create({
     chipsScrollView: {
         flexGrow: 0,
         flexShrink: 0,
-        marginBottom: 8,
+        marginBottom: 0,
     },
     chipsContainer: {
         paddingHorizontal: 16,
-        paddingVertical: 8,
+        paddingTop: 4,
+        paddingBottom: 0,
         flexDirection: 'row',
         alignItems: 'center',
     },
@@ -712,9 +710,8 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
         paddingHorizontal: 16,
         borderRadius: 20,
-        backgroundColor: COLORS.gray5,
         borderWidth: 1,
-        borderColor: COLORS.cardBorder,
+        borderColor: 'rgba(255,255,255,0.08)',
     },
     chipGradient: {
         paddingVertical: 8,
@@ -722,7 +719,6 @@ const styles = StyleSheet.create({
         borderRadius: 20,
     },
     chipText: {
-        color: COLORS.gray1,
         fontSize: 13,
         fontWeight: '500',
     },
@@ -743,18 +739,16 @@ const styles = StyleSheet.create({
     sectionHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 8,
-        marginBottom: 12,
+        marginTop: 0,
+        marginBottom: 6,
     },
     sectionDot: {
         width: 4,
         height: 4,
         borderRadius: 2,
-        backgroundColor: COLORS.orange,
         marginRight: 8,
     },
     sectionTitle: {
-        color: COLORS.gray1,
         fontSize: 12,
         fontWeight: '600',
         textTransform: 'uppercase',
@@ -763,12 +757,11 @@ const styles = StyleSheet.create({
 
     // Card
     card: {
-        backgroundColor: COLORS.card,
         borderRadius: 16,
         marginBottom: 12,
         overflow: 'hidden',
         borderWidth: 1,
-        borderColor: COLORS.cardBorder,
+        borderColor: 'rgba(255,255,255,0.08)',
     },
     cardHeader: {
         flexDirection: 'row',
@@ -794,13 +787,11 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     cardTitle: {
-        color: COLORS.text,
         fontSize: 15,
         fontWeight: '600',
         marginBottom: 2,
     },
     cardFormula: {
-        color: COLORS.accent,
         fontSize: 12,
         fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     },
@@ -808,13 +799,9 @@ const styles = StyleSheet.create({
         width: 28,
         height: 28,
         borderRadius: 14,
-        backgroundColor: 'rgba(10,132,255,0.12)',
         alignItems: 'center',
         justifyContent: 'center',
         marginLeft: 12,
-    },
-    expandButtonActive: {
-        backgroundColor: COLORS.accent,
     },
     heartButton: {
         width: 32,
@@ -839,7 +826,6 @@ const styles = StyleSheet.create({
         marginBottom: 16,
     },
     description: {
-        color: COLORS.textSecondary,
         fontSize: 13,
         lineHeight: 18,
         flex: 1,
@@ -860,30 +846,25 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     premiumInputLabel: {
-        color: COLORS.text,
         fontSize: 13,
         fontWeight: '500',
     },
     unitBadge: {
-        backgroundColor: COLORS.gray4,
         paddingHorizontal: 8,
         paddingVertical: 3,
         borderRadius: 6,
     },
     unitBadgeText: {
-        color: COLORS.gray1,
         fontSize: 10,
         fontWeight: '600',
     },
     premiumInputWrapper: {
-        backgroundColor: COLORS.gray5,
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: COLORS.cardBorder,
+        borderColor: 'rgba(255,255,255,0.08)',
         overflow: 'hidden',
     },
     premiumInput: {
-        color: COLORS.text,
         fontSize: 18,
         fontWeight: '500',
         paddingHorizontal: 16,
@@ -932,7 +913,6 @@ const styles = StyleSheet.create({
         borderColor: 'rgba(255,69,58,0.2)',
     },
     resultLabel: {
-        color: COLORS.gray1,
         fontSize: 11,
         fontWeight: '600',
         textTransform: 'uppercase',
@@ -940,13 +920,9 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     resultValue: {
-        color: COLORS.green,
         fontSize: 32,
         fontWeight: '700',
         fontFamily: Platform.OS === 'ios' ? 'SF Pro Display' : undefined,
-    },
-    resultValueError: {
-        color: COLORS.red,
     },
 
     // Empty State
@@ -959,18 +935,15 @@ const styles = StyleSheet.create({
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: COLORS.gray5,
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 16,
     },
     emptyTitle: {
-        color: COLORS.text,
         fontSize: 17,
         fontWeight: '600',
     },
     emptySubtitle: {
-        color: COLORS.gray1,
         fontSize: 14,
         marginTop: 4,
     },
@@ -978,10 +951,9 @@ const styles = StyleSheet.create({
     // Calculus Promo
     calculusPromo: {
         paddingHorizontal: 16,
-        marginBottom: 16,
+        marginBottom: 10,
     },
     calculusPromoTitle: {
-        color: COLORS.gray1,
         fontSize: 12,
         fontWeight: '600',
         textTransform: 'uppercase',

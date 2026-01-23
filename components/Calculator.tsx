@@ -1,16 +1,20 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Colors } from '../constants/Colors';
-import CalculatorButton from './CalculatorButton';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Platform } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import { Audio } from 'expo-av';
 import * as Haptics from 'expo-haptics';
-import { useNavigation } from '@react-navigation/native';
-import { evaluate } from '../lib/math';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import CalculatorButton from './CalculatorButton';
+import { evaluate } from '../lib/math';
+import { useTheme } from '../context/ThemeContext';
+
 export default function Calculator() {
+    const { theme } = useTheme();
     const navigation = useNavigation();
+    const insets = useSafeAreaInsets();
+
     const [currentValue, setCurrentValue] = useState<string>('0');
     const [isScientific, setIsScientific] = useState(false);
     const [sound, setSound] = useState<Audio.Sound>();
@@ -56,19 +60,13 @@ export default function Calculator() {
     };
 
     const handlePress = useCallback((text: string) => {
-        if (text !== 'Sci' && text !== 'Formula') {
+        if (text !== 'Sci' && text !== 'Formula' && text !== 'Adv' && text !== 'Hist') {
             playSound();
         }
 
         if (text === 'Formula') {
             // @ts-ignore
             navigation.navigate('Formula');
-            return;
-        }
-
-        if (text === 'Calc') {
-            // @ts-ignore
-            navigation.navigate('Calculus');
             return;
         }
 
@@ -95,29 +93,20 @@ export default function Calculator() {
 
         if (text === '=') {
             try {
-                // Replace visual operators with mathjs operators
                 const expression = currentValue
                     .replace(/x/g, '*')
-                    .replace(/÷/g, '/') // Just in case we use division symbol
-                    .replace(/log\(/g, 'log10(') // Mathjs 'log' is natural log by default, unless configured. Actually default log is natural. 
-                    // Common calc expects log to be base 10. mathjs has log10.
-                    // But let's check mathjs doc or assume log10.
+                    .replace(/÷/g, '/')
+                    .replace(/log\(/g, 'log10(')
                     .replace(/ln\(/g, 'log(');
-
-                // Let's use simpler handling:
-                // If user pressed 'sin', we added 'sin('.
 
                 const result = evaluate(expression);
                 let finalVal = '';
-                // Format: limit decimals if long
                 if (typeof result === 'number') {
-                    // Check for very small numbers (precision issues)
                     finalVal = parseFloat(result.toPrecision(10)).toString();
                 } else {
                     finalVal = result.toString();
                 }
 
-                // Add to history
                 const item = `${expression} = ${finalVal}`;
                 setHistory(prev => {
                     const newHistory = [item, ...prev].slice(0, 10);
@@ -134,26 +123,19 @@ export default function Calculator() {
 
         if (text === '+/-') {
             if (currentValue === '0' || currentValue === 'Error') return;
-            // Toggle sign of the last number? Or wrap whole thing?
-            // Simple approach: wrap whole expression in -(...)
             setCurrentValue(prev => `-(${prev})`);
             return;
         }
 
-        // --- Scientific & Operators ---
-
         let valToAdd = text;
         const operators = ['+', '-', 'x', '/'];
 
-        // Handling scientific functions that open parenthesis
         if (['sin', 'cos', 'tan', 'sqrt', 'log', 'ln'].includes(text)) {
             valToAdd = text + '(';
         }
 
-        // Smart append logic
         setCurrentValue((prev) => {
             if (prev === '0' || prev === 'Error') {
-                // If it's an operator, assume it's after 0? No, usually replace 0.
                 if (operators.includes(text)) return '0' + text;
                 if (text === '.') return '0.';
                 return valToAdd;
@@ -163,26 +145,26 @@ export default function Calculator() {
     }, [navigation, isScientific, showHistory, currentValue, sound]);
 
     return (
-        <View style={styles.container}>
-            <SafeAreaView style={styles.resultContainer}>
+        <View style={[styles.container, { backgroundColor: theme.dark }]}>
+            <SafeAreaView style={[styles.resultContainer, isScientific && { flex: 0.25 }]}>
                 {showHistory ? (
                     <View style={styles.historyList}>
-                        <Text style={styles.historyTitle}>Recent Calculations</Text>
+                        <Text style={[styles.historyTitle, { color: theme.accent }]}>Recent Calculations</Text>
                         <ScrollView showsVerticalScrollIndicator={false}>
                             {history.length === 0 ? (
-                                <Text style={styles.emptyHistory}>No history yet</Text>
+                                <Text style={[styles.emptyHistory, { color: theme.textSecondary }]}>No history yet</Text>
                             ) : (
                                 history.map((item, index) => (
                                     <TouchableOpacity
                                         key={index}
                                         onPress={() => {
                                             const val = item.split(' = ')[1];
-                                            setCurrentValue(val);
+                                            setCurrentValue(val || '0');
                                             setShowHistory(false);
                                         }}
                                         style={styles.historyItem}
                                     >
-                                        <Text style={styles.historyText}>{item}</Text>
+                                        <Text style={[styles.historyText, { color: theme.textPrimary }]}>{item}</Text>
                                     </TouchableOpacity>
                                 ))
                             )}
@@ -192,29 +174,33 @@ export default function Calculator() {
                     <ScrollView
                         horizontal
                         showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end' }}
+                        contentContainerStyle={styles.displayScroll}
                     >
-                        <Text style={[styles.resultText, currentValue.length > 10 && { fontSize: 40 }]}>
+                        <Text style={[
+                            styles.resultText,
+                            { color: theme.textPrimary },
+                            currentValue.length > 10 && { fontSize: 40 }
+                        ]}>
                             {currentValue}
                         </Text>
                     </ScrollView>
                 )}
             </SafeAreaView>
 
-            <View style={styles.keypad}>
+            <View style={[styles.keypad, isScientific && { flex: 0.75 }, { backgroundColor: theme.dark }]}>
                 {!isScientific && (
-                    <View style={[styles.row, { justifyContent: 'flex-end', paddingRight: 15, marginBottom: 0 }]}>
-                        <TouchableOpacity onPress={() => handlePress('Adv')} style={styles.utilBtn}>
-                            <Text style={styles.utilBtnText}>Advance Math</Text>
+                    <View style={styles.utilRow}>
+                        <TouchableOpacity onPress={() => handlePress('Adv')} style={[styles.utilBtn, { backgroundColor: theme.secondary, borderColor: theme.gray }]}>
+                            <Text style={[styles.utilBtnText, { color: theme.accent }]}>Advance Math</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => handlePress('Hist')} style={styles.utilBtn}>
-                            <Text style={styles.utilBtnText}>History</Text>
+                        <TouchableOpacity onPress={() => handlePress('Hist')} style={[styles.utilBtn, { backgroundColor: theme.secondary, borderColor: theme.gray }]}>
+                            <Text style={[styles.utilBtnText, { color: theme.accent }]}>History</Text>
                         </TouchableOpacity>
                     </View>
                 )}
 
                 {isScientific && (
-                    <>
+                    <View style={styles.sciSection}>
                         <View style={styles.row}>
                             <CalculatorButton text="sin" theme="secondary" onPress={handlePress} style={styles.sciBtn} textStyle={styles.sciText} />
                             <CalculatorButton text="cos" theme="secondary" onPress={handlePress} style={styles.sciBtn} textStyle={styles.sciText} />
@@ -227,13 +213,7 @@ export default function Calculator() {
                             <CalculatorButton text="sqrt" theme="secondary" onPress={handlePress} style={styles.sciBtn} textStyle={styles.sciText} />
                             <CalculatorButton text="^" theme="secondary" onPress={handlePress} style={styles.sciBtn} textStyle={styles.sciText} />
                         </View>
-                        <View style={styles.row}>
-                            <CalculatorButton text="pi" theme="secondary" onPress={handlePress} style={styles.sciBtn} textStyle={styles.sciText} />
-                            <CalculatorButton text="e" theme="secondary" onPress={handlePress} style={styles.sciBtn} textStyle={styles.sciText} />
-                            <CalculatorButton text="ln" theme="secondary" onPress={handlePress} style={styles.sciBtn} textStyle={styles.sciText} />
-                            <CalculatorButton text="!" theme="secondary" onPress={handlePress} style={styles.sciBtn} textStyle={styles.sciText} />
-                        </View>
-                    </>
+                    </View>
                 )}
 
                 <View style={styles.row}>
@@ -264,16 +244,15 @@ export default function Calculator() {
                     <CalculatorButton
                         text="Formula"
                         onPress={handlePress}
-                        style={{ flex: 2, aspectRatio: 'auto', borderRadius: 40 }}
+                        style={styles.wideBtn}
                     />
                     <CalculatorButton
                         text="Sci"
                         theme={isScientific ? 'accent' : 'secondary'}
                         onPress={handlePress}
-                        style={{ flex: 1, aspectRatio: 'auto', borderRadius: 40 }}
+                        style={styles.sciToggle}
                     />
                     <CalculatorButton text="0" onPress={handlePress} />
-                    <CalculatorButton text="." onPress={handlePress} />
                     <CalculatorButton text="=" theme="accent" onPress={handlePress} />
                 </View>
             </View>
@@ -284,78 +263,99 @@ export default function Calculator() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.dark,
-        justifyContent: 'flex-end',
     },
     resultContainer: {
-        flex: 0.3,
+        flex: 0.35,
         justifyContent: 'flex-end',
         alignItems: 'flex-end',
-        padding: 20,
+        paddingHorizontal: 20,
+        paddingBottom: 10,
+    },
+    displayScroll: {
+        flexGrow: 1,
+        justifyContent: 'flex-end',
+        alignItems: 'flex-end',
     },
     resultText: {
-        color: Colors.textPrimary,
         fontSize: 70,
         textAlign: 'right',
+        fontWeight: '300',
     },
     keypad: {
-        flex: 0.7,
+        flex: 0.65,
+        paddingBottom: 30,
+        paddingHorizontal: 10,
         justifyContent: 'flex-end',
-        paddingBottom: 20,
+    },
+    utilRow: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        paddingRight: 10,
+        marginBottom: 10,
+    },
+    sciSection: {
+        marginBottom: 10,
     },
     row: {
         flexDirection: 'row',
-        marginBottom: 8, // Small generic spacing
+        justifyContent: 'space-between',
+        marginBottom: 8,
     },
     sciBtn: {
-        height: 35, // Shrinked by 5px more (was 48)
-        margin: 5,
-        aspectRatio: undefined, // Override circular aspect
-        borderRadius: 21.5,
+        height: 40,
+        margin: 4,
+        borderRadius: 20,
+        aspectRatio: undefined,
+        flex: 1,
     },
     sciText: {
-        fontSize: 15,
+        fontSize: 14,
     },
-    // History & Utils
     utilBtn: {
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        backgroundColor: Colors.secondary,
-        borderRadius: 15,
-        marginLeft: 8,
+        paddingHorizontal: 15,
+        paddingVertical: 8,
+        borderRadius: 20,
+        marginLeft: 10,
         borderWidth: 1,
-        borderColor: Colors.gray,
     },
     utilBtnText: {
-        color: Colors.accent,
-        fontSize: 12,
-        fontWeight: 'bold',
+        fontSize: 13,
+        fontWeight: '600',
+    },
+    wideBtn: {
+        flex: 1.5,
+        aspectRatio: undefined,
+        borderRadius: 40,
+        marginHorizontal: 5,
+    },
+    sciToggle: {
+        flex: 0.8,
+        aspectRatio: undefined,
+        borderRadius: 40,
+        marginHorizontal: 5,
     },
     historyList: {
         flex: 1,
         width: '100%',
-        paddingTop: 10,
     },
     historyTitle: {
-        color: Colors.accent,
         fontSize: 14,
         fontWeight: 'bold',
         marginBottom: 10,
         textTransform: 'uppercase',
     },
     historyItem: {
-        paddingVertical: 8,
+        paddingVertical: 12,
         borderBottomWidth: 1,
         borderBottomColor: 'rgba(255,255,255,0.05)',
     },
     historyText: {
-        color: Colors.textPrimary,
-        fontSize: 18,
+        fontSize: 20,
         textAlign: 'right',
     },
     emptyHistory: {
-        color: Colors.textSecondary,
         textAlign: 'center',
-        marginTop: 20,
+        marginTop: 40,
+        fontSize: 16,
     }
 });

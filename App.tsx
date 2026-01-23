@@ -12,34 +12,35 @@ import AdvancedMathScreen from './screens/AdvancedMathScreen';
 import ConstantsScreen from './screens/ConstantsScreen';
 import UnitConverterScreen from './screens/UnitConverterScreen';
 import ScratchpadScreen from './screens/ScratchpadScreen';
-import { Colors } from './constants/Colors';
+import FinanceScreen from './screens/FinanceScreen';
+import AddFormulaScreen from './screens/AddFormulaScreen';
+import ThemeScreen from './screens/ThemeScreen';
+import { ThemeProvider } from './context/ThemeContext';
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
-    <NavigationContainer>
-      <StatusBar style="light" />
-      <Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: Colors.dark } }}>
-        <Stack.Screen name="Home" component={Calculator} />
-        <Stack.Screen name="Formula" component={FormulaScreen} />
-        <Stack.Screen name="Calculus" component={CalculusScreen} />
-        <Stack.Screen name="Matrix" component={MatrixScreen} />
-        <Stack.Screen name="Graph" component={GraphScreen} />
-        <Stack.Screen name="AdvancedMenu" component={AdvancedMenuScreen} />
-        <Stack.Screen name="AdvancedMath" component={AdvancedMathScreen} />
-        <Stack.Screen name="Constants" component={ConstantsScreen} />
-        <Stack.Screen name="UnitConverter" component={UnitConverterScreen} />
-        <Stack.Screen name="Scratchpad" component={ScratchpadScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <ThemeProvider>
+      <NavigationContainer>
+        <StatusBar style="light" />
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Home" component={Calculator} />
+          <Stack.Screen name="Formula" component={FormulaScreen} />
+          <Stack.Screen name="Calculus" component={CalculusScreen} />
+          <Stack.Screen name="Matrix" component={MatrixScreen} />
+          <Stack.Screen name="Graph" component={GraphScreen} />
+          <Stack.Screen name="AdvancedMenu" component={AdvancedMenuScreen} />
+          <Stack.Screen name="AdvancedMath" component={AdvancedMathScreen} />
+          <Stack.Screen name="Constants" component={ConstantsScreen} />
+          <Stack.Screen name="UnitConverter" component={UnitConverterScreen} />
+          <Stack.Screen name="Scratchpad" component={ScratchpadScreen} />
+          <Stack.Screen name="Finance" component={FinanceScreen} />
+          <Stack.Screen name="AddFormula" component={AddFormulaScreen} />
+          <Stack.Screen name="Themes" component={ThemeScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </ThemeProvider>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.dark,
-    justifyContent: 'center',
-  },
-});
