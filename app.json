@@ -29,9 +29,15 @@
     },
     "extra": {
       "eas": {
-        "projectId": "ff6bbf2a-0082-40b1-a2b0-f6059e3f4ae0"
+        "projectId": "38955c8f-d1cb-46cf-9ee2-e68dcaf90df9"
       }
     },
-    "owner": "calcpro"
+    "owner": "hussnainahmad",
+    "updates": {
+      "url": "https://u.expo.dev/38955c8f-d1cb-46cf-9ee2-e68dcaf90df9"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    }
   }
 }

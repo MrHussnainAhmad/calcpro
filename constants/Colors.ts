@@ -37,7 +37,7 @@ export const Themes = {
   },
   Retro: {
     dark: '#8b9b8b',
-    light: '#000000',
+    light: '#ffffff',
     gray: '#7a8a7a',
     lightGray: '#6b7b6b',
     accent: '#000000',

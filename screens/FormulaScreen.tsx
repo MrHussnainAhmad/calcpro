@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 // @ts-ignore
-import formulas from '../assets/formulas.json';
+const formulasData = require('../assets/formulas.json');
 import { evaluate } from '../lib/math';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -48,6 +48,27 @@ interface FormulaData {
     inputs: InputDef[];
     output?: { label?: string; unit?: string };
 }
+
+const baseFormulas: FormulaData[] = (() => {
+    if (Array.isArray(formulasData)) return formulasData;
+    const defaults = Array.isArray(formulasData?.default) ? formulasData.default : [];
+    const extras = Array.isArray(formulasData?.formulas) ? formulasData.formulas : [];
+    if (!defaults.length) return extras;
+    if (!extras.length) return defaults;
+
+    const seen = new Set<string>();
+    const merged: FormulaData[] = [];
+    for (const list of [defaults, extras]) {
+        for (const item of list) {
+            const id = item?.id;
+            if (!id || !seen.has(id)) {
+                if (id) seen.add(id);
+                merged.push(item);
+            }
+        }
+    }
+    return merged;
+})();
 
 const CalcButton = memo(({
     onPress,
@@ -415,7 +436,9 @@ export default function FormulaScreen({ navigation }: any) {
         return unsubscribe;
     }, [navigation, loadData]);
 
-    const allFormulas = useMemo(() => [...formulas, ...customFormulas], [customFormulas]);
+    const allFormulas = useMemo(() => [...baseFormulas, ...customFormulas], [customFormulas]);
+    const shouldDisableVirtualization =
+        Platform.OS === 'android' || (Platform.OS === 'ios' && allFormulas.length <= 300);
 
     const toggleFavorite = useCallback(async (id: string) => {
         setFavorites(prev => {
@@ -606,10 +629,12 @@ export default function FormulaScreen({ navigation }: any) {
                     ListEmptyComponent={EmptyState}
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
-                    initialNumToRender={5}
-                    maxToRenderPerBatch={10}
-                    windowSize={5}
-                    removeClippedSubviews={Platform.OS === 'android'}
+                    initialNumToRender={20}
+                    maxToRenderPerBatch={30}
+                    windowSize={12}
+                    updateCellsBatchingPeriod={16}
+                    removeClippedSubviews={false}
+                    disableVirtualization={shouldDisableVirtualization}
                 />
             </KeyboardAvoidingView>
         </View>

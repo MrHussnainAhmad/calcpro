@@ -1,64 +1,33 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../constants/Colors';
 import { useNavigation } from '@react-navigation/native';
-import { unit } from '../lib/math';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
-const UNIT_GROUPS = [
-    {
-        name: 'Length',
-        units: ['m', 'cm', 'mm', 'km', 'inch', 'foot', 'yard', 'mile', 'lightyear']
-    },
-    {
-        name: 'Mass',
-        units: ['kg', 'g', 'mg', 'lb', 'oz', 'tonne']
-    },
-    {
-        name: 'Area',
-        units: ['m2', 'cm2', 'km2', 'sqinch', 'sqfoot', 'acre', 'hectare']
-    },
-    {
-        name: 'Volume',
-        units: ['m3', 'L', 'ml', 'cup', 'pint', 'quart', 'gallon']
-    },
-    {
-        name: 'Temperature',
-        units: ['celsius', 'fahrenheit', 'kelvin']
-    },
-    {
-        name: 'Speed',
-        units: ['m/s', 'km/h', 'mph', 'knot', 'ft/s']
-    },
-    {
-        name: 'Force',
-        units: ['N', 'lbf', 'dyn', 'kip']
-    },
-    {
-        name: 'Energy',
-        units: ['J', 'kJ', 'cal', 'kcal', 'kWh', 'eV', 'BTU']
-    },
-    {
-        name: 'Pressure',
-        units: ['Pa', 'kPa', 'bar', 'psi', 'atm', 'torr', 'mmHg']
-    },
-    {
-        name: 'Power',
-        units: ['W', 'kW', 'hp', 'erg']
-    },
-    {
-        name: 'Angle',
-        units: ['deg', 'rad', 'grad']
-    }
+// Data units with binary (1024) conversion - Bytes and Bits
+const DATA_UNITS = [
+    // Bytes-based
+    { name: 'Petabytes', abbr: 'PB', toBytes: Math.pow(1024, 5), category: 'Bytes' },
+    { name: 'Terabytes', abbr: 'TB', toBytes: Math.pow(1024, 4), category: 'Bytes' },
+    { name: 'Gigabytes', abbr: 'GB', toBytes: Math.pow(1024, 3), category: 'Bytes' },
+    { name: 'Megabytes', abbr: 'MB', toBytes: Math.pow(1024, 2), category: 'Bytes' },
+    { name: 'Kilobytes', abbr: 'KB', toBytes: 1024, category: 'Bytes' },
+    { name: 'Bytes', abbr: 'B', toBytes: 1, category: 'Bytes' },
+    // Bits-based (1 Byte = 8 bits)
+    { name: 'Petabits', abbr: 'Pb', toBytes: Math.pow(1024, 5) / 8, category: 'Bits' },
+    { name: 'Terabits', abbr: 'Tb', toBytes: Math.pow(1024, 4) / 8, category: 'Bits' },
+    { name: 'Gigabits', abbr: 'Gb', toBytes: Math.pow(1024, 3) / 8, category: 'Bits' },
+    { name: 'Megabits', abbr: 'Mb', toBytes: Math.pow(1024, 2) / 8, category: 'Bits' },
+    { name: 'Kilobits', abbr: 'Kb', toBytes: 1024 / 8, category: 'Bits' },
+    { name: 'Bits', abbr: 'bit', toBytes: 1 / 8, category: 'Bits' },
 ];
 
-export default function UnitConverterScreen() {
+export default function DataConversionScreen() {
     const navigation = useNavigation();
-    const [selectedGroup, setSelectedGroup] = useState(UNIT_GROUPS[0]);
-    const [fromUnit, setFromUnit] = useState(UNIT_GROUPS[0].units[0]);
-    const [toUnit, setToUnit] = useState(UNIT_GROUPS[0].units[1]);
+    const [fromUnit, setFromUnit] = useState(DATA_UNITS[2]); // GB
+    const [toUnit, setToUnit] = useState(DATA_UNITS[3]); // MB
     const [inputValue, setInputValue] = useState('1');
     const [outputValue, setOutputValue] = useState('');
 
@@ -70,19 +39,15 @@ export default function UnitConverterScreen() {
                 return;
             }
 
-            const res = unit(val, fromUnit).toNumber(toUnit);
-            setOutputValue(res.toLocaleString(undefined, { maximumFractionDigits: 6 }));
+            // Convert from input unit to bytes, then to output unit
+            const bytes = val * fromUnit.toBytes;
+            const result = bytes / toUnit.toBytes;
+
+            setOutputValue(result.toLocaleString(undefined, { maximumFractionDigits: 6 }));
         } catch (e) {
             setOutputValue('Error');
         }
     }, [inputValue, fromUnit, toUnit]);
-
-    const handleGroupChange = (group: any) => {
-        setSelectedGroup(group);
-        setFromUnit(group.units[0]);
-        setToUnit(group.units[1] || group.units[0]);
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    };
 
     const swapUnits = () => {
         setFromUnit(toUnit);
@@ -96,23 +61,7 @@ export default function UnitConverterScreen() {
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                     <Ionicons name="chevron-back" size={24} color={Colors.accent} />
                 </TouchableOpacity>
-                <Text style={styles.title}>Unit Converter</Text>
-            </View>
-
-            <View style={styles.groupScroller}>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsContainer}>
-                    {UNIT_GROUPS.map((group) => (
-                        <TouchableOpacity
-                            key={group.name}
-                            onPress={() => handleGroupChange(group)}
-                            style={[styles.chip, selectedGroup.name === group.name && styles.activeChip]}
-                        >
-                            <Text style={[styles.chipText, selectedGroup.name === group.name && styles.activeChipText]}>
-                                {group.name}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
-                </ScrollView>
+                <Text style={styles.title}>Data Conversion</Text>
             </View>
 
             <View style={styles.converterContent}>
@@ -127,13 +76,15 @@ export default function UnitConverterScreen() {
                         />
                         <View style={styles.unitSelector}>
                             <ScrollView style={styles.unitList}>
-                                {selectedGroup.units.map(u => (
+                                {DATA_UNITS.map(unit => (
                                     <TouchableOpacity
-                                        key={u}
-                                        onPress={() => setFromUnit(u)}
-                                        style={[styles.unitItem, fromUnit === u && styles.activeUnitItem]}
+                                        key={unit.abbr}
+                                        onPress={() => setFromUnit(unit)}
+                                        style={[styles.unitItem, fromUnit.abbr === unit.abbr && styles.activeUnitItem]}
                                     >
-                                        <Text style={[styles.unitItemText, fromUnit === u && styles.activeUnitItemText]}>{u}</Text>
+                                        <Text style={[styles.unitItemText, fromUnit.abbr === unit.abbr && styles.activeUnitItemText]}>
+                                            {unit.abbr}
+                                        </Text>
                                     </TouchableOpacity>
                                 ))}
                             </ScrollView>
@@ -151,18 +102,27 @@ export default function UnitConverterScreen() {
                         <Text style={styles.resultValue}>{outputValue || '0'}</Text>
                         <View style={styles.unitSelector}>
                             <ScrollView style={styles.unitList}>
-                                {selectedGroup.units.map(u => (
+                                {DATA_UNITS.map(unit => (
                                     <TouchableOpacity
-                                        key={u}
-                                        onPress={() => setToUnit(u)}
-                                        style={[styles.unitItem, toUnit === u && styles.activeUnitItem]}
+                                        key={unit.abbr}
+                                        onPress={() => setToUnit(unit)}
+                                        style={[styles.unitItem, toUnit.abbr === unit.abbr && styles.activeUnitItem]}
                                     >
-                                        <Text style={[styles.unitItemText, toUnit === u && styles.activeUnitItemText]}>{u}</Text>
+                                        <Text style={[styles.unitItemText, toUnit.abbr === unit.abbr && styles.activeUnitItemText]}>
+                                            {unit.abbr}
+                                        </Text>
                                     </TouchableOpacity>
                                 ))}
                             </ScrollView>
                         </View>
                     </View>
+                </View>
+
+                <View style={styles.infoBox}>
+                    <Ionicons name="information-circle-outline" size={16} color={Colors.textSecondary} />
+                    <Text style={styles.infoText}>
+                        Binary (1024-based) conversion. 1 KB = 1024 Bytes, 1 Byte = 8 bits
+                    </Text>
                 </View>
             </View>
         </SafeAreaView>
@@ -187,32 +147,6 @@ const styles = StyleSheet.create({
         fontSize: 22,
         fontWeight: 'bold',
     },
-    groupScroller: {
-        marginBottom: 20,
-    },
-    chipsContainer: {
-        paddingHorizontal: 20,
-    },
-    chip: {
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        backgroundColor: Colors.secondary,
-        borderRadius: 20,
-        marginRight: 10,
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
-    },
-    activeChip: {
-        backgroundColor: Colors.accent,
-        borderColor: Colors.accent,
-    },
-    chipText: {
-        color: Colors.textSecondary,
-        fontWeight: '600',
-    },
-    activeChipText: {
-        color: 'white',
-    },
     converterContent: {
         padding: 20,
     },
@@ -220,7 +154,7 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.secondary,
         borderRadius: 15,
         padding: 15,
-        height: 140,
+        height: 200,
     },
     label: {
         color: Colors.accent,
@@ -257,7 +191,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     unitItem: {
-        paddingVertical: 5,
+        paddingVertical: 8,
         borderRadius: 5,
         marginBottom: 2,
         alignItems: 'center',
@@ -284,5 +218,17 @@ const styles = StyleSheet.create({
         marginVertical: 10,
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.1)',
+    },
+    infoBox: {
+        marginTop: 20,
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 10,
+    },
+    infoText: {
+        fontSize: 11,
+        color: Colors.textSecondary,
+        marginLeft: 8,
+        flex: 1,
     }
 });

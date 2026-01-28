@@ -31,6 +31,7 @@ const CalculatorButton = React.memo(({ onPress, text, size = 'single', theme: th
         textStyles.push({ color: theme.black });
     } else if (themeProp === 'accent') {
         buttonStyles.push({ backgroundColor: theme.accent });
+        textStyles.push({ color: theme.light });
     }
 
     if (style) {

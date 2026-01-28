@@ -1,0 +1,33 @@
+# Release Notes - Calculator Pro v1.0.1
+
+**Version:** 1.0.1
+**Release Date:** January 28, 2026
+
+## Overview
+Calculator Pro v1.0.1 introduces a comprehensive suite of mathematical, financial, and conversion tools designed for power users. This release brings advanced calculus capabilities, matrix operations, graphing, and a fully customizable theme system.
+
+## Key Features
+
+### 🧮 Advanced Mathematics
+- **Calculus**: Perform derivatives, integrals, and limits.
+- **Matrix Operations**: Support for matrix arithmetic, determinants, and inverses.
+- **Graphing**: Visualize mathematical functions with the new Graph Screen.
+- **Advanced Math**: dedicated screen for complex mathematical functions.
+
+### 🔄 Converters
+- **Unit Converter**: Comprehensive unit conversion across multiple categories.
+- **Currency Converter**: Real-time currency exchange rate calculations.
+- **Data & Time**: Specialized converters for data sizes and time zones/units.
+
+### 💼 Finance & Utility
+- **Finance Tools**: Specialized calculators for financial planning and analysis.
+- **Constants Library**: Built-in database of mathematical and physical constants.
+- **Scratchpad**: Quick note-taking area for intermediate calculations.
+
+### 🛠 Customization & Extensibility
+- **Formula Builder**: Create and save custom formulas for repetitive tasks (Add/View Formulas).
+- **Theme Support**: Customize the app's appearance via the Theme Screen.
+
+## Technical Details
+- Built with React Native and Expo.
+- Powered by `mathjs` and `nerdamer` for robust symbolic and numerical computation.
