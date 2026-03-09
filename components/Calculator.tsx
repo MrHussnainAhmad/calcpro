@@ -39,7 +39,8 @@ export default function Calculator() {
         async function loadSound() {
             try {
                 const { sound } = await Audio.Sound.createAsync(
-                    require('../assets/click.mp3')
+                    require('../assets/click.mp3'),
+                    { shouldPlay: false }
                 );
                 setSound(sound);
             } catch (e) {
@@ -187,7 +188,12 @@ export default function Calculator() {
                 )}
             </SafeAreaView>
 
-            <View style={[styles.keypad, isScientific && { flex: 0.75 }, { backgroundColor: theme.dark }]}>
+            <View style={[
+                styles.keypad,
+                { paddingBottom: 30 + insets.bottom },
+                isScientific && { flex: 0.75 },
+                { backgroundColor: theme.dark }
+            ]}>
                 <View style={styles.utilRow}>
                     <TouchableOpacity
                         onPress={() => handlePress('Sci')}
@@ -307,16 +313,16 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     sciSection: {
-        marginBottom: 10,
+        marginBottom: 0,
     },
     row: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 8,
+        marginBottom: 4,
     },
     sciBtn: {
-        height: 40,
-        margin: 4,
+        height: 36,
+        margin: 3,
         borderRadius: 20,
         aspectRatio: undefined,
         flex: 1,
