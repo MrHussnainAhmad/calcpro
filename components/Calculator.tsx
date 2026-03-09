@@ -188,16 +188,31 @@ export default function Calculator() {
             </SafeAreaView>
 
             <View style={[styles.keypad, isScientific && { flex: 0.75 }, { backgroundColor: theme.dark }]}>
-                {!isScientific && (
-                    <View style={styles.utilRow}>
-                        <TouchableOpacity onPress={() => handlePress('Adv')} style={[styles.utilBtn, { backgroundColor: theme.secondary, borderColor: theme.gray }]}>
-                            <Text style={[styles.utilBtnText, { color: theme.accent }]}>Advance Math</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => handlePress('Hist')} style={[styles.utilBtn, { backgroundColor: theme.secondary, borderColor: theme.gray }]}>
-                            <Text style={[styles.utilBtnText, { color: theme.accent }]}>History</Text>
-                        </TouchableOpacity>
-                    </View>
-                )}
+                <View style={styles.utilRow}>
+                    <TouchableOpacity
+                        onPress={() => handlePress('Sci')}
+                        style={[
+                            styles.utilBtn,
+                            {
+                                backgroundColor: isScientific ? theme.accent : theme.secondary,
+                                borderColor: theme.gray
+                            }
+                        ]}
+                    >
+                        <Text style={[
+                            styles.utilBtnText,
+                            { color: isScientific ? '#fff' : theme.accent }
+                        ]}>
+                            Sci
+                        </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => handlePress('Adv')} style={[styles.utilBtn, { backgroundColor: theme.secondary, borderColor: theme.gray }]}>
+                        <Text style={[styles.utilBtnText, { color: theme.accent }]}>Advance Math</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => handlePress('Hist')} style={[styles.utilBtn, { backgroundColor: theme.secondary, borderColor: theme.gray }]}>
+                        <Text style={[styles.utilBtnText, { color: theme.accent }]}>History</Text>
+                    </TouchableOpacity>
+                </View>
 
                 {isScientific && (
                     <View style={styles.sciSection}>
@@ -247,10 +262,8 @@ export default function Calculator() {
                         style={styles.wideBtn}
                     />
                     <CalculatorButton
-                        text="Sci"
-                        theme={isScientific ? 'accent' : 'secondary'}
+                        text="."
                         onPress={handlePress}
-                        style={styles.sciToggle}
                     />
                     <CalculatorButton text="0" onPress={handlePress} />
                     <CalculatorButton text="=" theme="accent" onPress={handlePress} />

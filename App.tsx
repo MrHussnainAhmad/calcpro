@@ -21,8 +21,11 @@ import CurrencyConversionScreen from './screens/CurrencyConversionScreen';
 import DataConversionScreen from './screens/DataConversionScreen';
 import { ThemeProvider } from './context/ThemeContext';
 import * as Updates from 'expo-updates';
-import { useEffect } from 'react';
-import { Alert } from 'react-native';
+import Constants from 'expo-constants';
+import * as Linking from 'expo-linking';
+import { useEffect, useRef, useState } from 'react';
+import { AppState, View } from 'react-native';
+import UpdateAlert from './components/UpdateAlert';
 
 import { useTheme } from './context/ThemeContext';
 
@@ -30,30 +33,88 @@ const Stack = createNativeStackNavigator();
 
 function AppNavigator() {
   const { theme } = useTheme();
+  const appState = useRef(AppState.currentState);
 
-  useEffect(() => {
-    async function onFetchUpdateAsync() {
+  // State for Custom Alert
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertType, setAlertType] = useState<'soft' | 'hard' | 'ota' | null>(null);
+  const [playStoreUrl, setPlayStoreUrl] = useState('');
+
+  const checkVersionAndUpdates = async () => {
+    // 1. Check for OTA Updates first
+    if (!__DEV__) {
       try {
         const update = await Updates.checkForUpdateAsync();
-
         if (update.isAvailable) {
           await Updates.fetchUpdateAsync();
-          Alert.alert(
-            'Update Available',
-            'A new version of the app is available. The app will now restart to apply the update.',
-            [{ text: 'OK', onPress: () => Updates.reloadAsync() }]
-          );
+          setAlertType('ota');
+          setAlertVisible(true);
+          return; // Stop here if OTA update is being applied
         }
       } catch (error) {
-        // You can also add an error handler here
-        console.warn(`Error fetching latest Expo update: ${error}`);
+        // console.warn(`Error fetching latest Expo update: ${error}`);
       }
     }
 
-    if (!__DEV__) {
-      onFetchUpdateAsync();
+    // 2. Check for Store Version (Play Store)
+    try {
+      const response = await fetch('https://app-backend-pgf9.vercel.app/p/config/exchange-rates');
+      const data = await response.json();
+      const appVersionFromServer = data.version;
+      const currentVersion = Constants.expoConfig?.version || '1.0.0';
+
+      if (appVersionFromServer && currentVersion) {
+        const parseVersion = (v: string) => v.split('.').map(Number);
+        const [s1, s2, s3] = parseVersion(appVersionFromServer);
+        const [c1, c2, c3] = parseVersion(currentVersion);
+
+        const serverVal = s1 * 1000000 + s2 * 1000 + s3;
+        const currentVal = c1 * 1000000 + c2 * 1000 + c3;
+
+        if (serverVal > currentVal) {
+          const diff = serverVal - currentVal;
+          const url = `https://play.google.com/store/apps/details?id=${Constants.expoConfig?.android?.package || 'com.hussnainahmad.calcpro'}`;
+          setPlayStoreUrl(url);
+
+          if (diff <= 1) {
+            setAlertType('soft');
+            setAlertVisible(true);
+          } else {
+            setAlertType('hard');
+            setAlertVisible(true);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error checking version:', error);
     }
+  };
+
+  useEffect(() => {
+    checkVersionAndUpdates();
+
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        checkVersionAndUpdates();
+      }
+      appState.current = nextAppState;
+    });
+
+    return () => {
+      subscription.remove();
+    };
   }, []);
+
+  const handleUpdateAction = () => {
+    if (alertType === 'ota') {
+      Updates.reloadAsync();
+    } else {
+      Linking.openURL(playStoreUrl);
+    }
+  };
 
   const navTheme = {
     ...DefaultTheme,
@@ -98,6 +159,14 @@ function AppNavigator() {
         <Stack.Screen name="AddFormula" component={AddFormulaScreen} />
         <Stack.Screen name="Themes" component={ThemeScreen} />
       </Stack.Navigator>
+
+      {/* Global Custom Alert */}
+      <UpdateAlert 
+        visible={alertVisible}
+        type={alertType}
+        onUpdate={handleUpdateAction}
+        onCancel={() => setAlertVisible(false)}
+      />
     </NavigationContainer>
   );
 }
@@ -109,4 +178,5 @@ export default function App() {
     </ThemeProvider>
   );
 }
+
 

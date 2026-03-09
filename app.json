@@ -29,15 +29,18 @@
     },
     "extra": {
       "eas": {
-        "projectId": "38955c8f-d1cb-46cf-9ee2-e68dcaf90df9"
+        "projectId": "4ce7e8cb-47ba-4636-a55f-79bfa97d8232"
       }
     },
-    "owner": "hussnainahmad",
+    "owner": "hussnainahmadsahi",
     "updates": {
-      "url": "https://u.expo.dev/38955c8f-d1cb-46cf-9ee2-e68dcaf90df9"
+      "url": "https://u.expo.dev/4ce7e8cb-47ba-4636-a55f-79bfa97d8232"
     },
     "runtimeVersion": {
       "policy": "appVersion"
-    }
+    },
+    "plugins": [
+      "expo-font"
+    ]
   }
 }

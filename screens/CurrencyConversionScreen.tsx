@@ -124,7 +124,7 @@ export default function CurrencyConversionScreen() {
             setLoading(true);
             setError(null);
             // Fetch from custom backend
-            const response = await fetch('https://app-backend-alpha.vercel.app/p/general/exchange-rates');
+            const response = await fetch('https://app-backend-pgf9.vercel.app/p/general/exchange-rates');
 
             if (!response.ok) {
                 throw new Error('Failed to fetch exchange rates');
